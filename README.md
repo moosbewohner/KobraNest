@@ -16,6 +16,32 @@ Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional Kli
 
 ZIP vollständig entpacken, dann **Start-KobraNest.cmd** oder **Kobrian-Assistent.exe** starten. `_internal` muss daneben bleiben. / Extract the complete ZIP, then run **Start-KobraNest.cmd** or **Kobrian-Assistent.exe**. Keep `_internal` beside it.
 
+## Erforderliche Vorarbeiten: Rinkhals und Klipper-Tunneling
+
+**Vor der KobraNest-Installation müssen Rinkhals und die passende Klipper-Umgebung aus den von Antiriad gepflegten Kobra-S1-Repositories eingerichtet sein. Erfahrung mit Klipper-Tunneling über LAN oder USB wird vorausgesetzt.**
+
+KobraNest ergänzt die lokale Oberfläche und Systemverwaltung auf dem Drucker. Es ersetzt nicht die vorherige Einrichtung von Klipper/Moonraker auf dem externen Host, der passenden MCU-Firmware und des gewählten LAN-/USB-Tunnels. Die ausgewählte Verbindung sollte bereits funktionieren und verstanden sein, bevor das System umgestellt wird. Rinkhals wird unter anderem für den SSH-Zugang im Originalsystem und die Rückkehr-/Start-App benötigt.
+
+Anleitungen und projektspezifische Informationen:
+
+- [Antiriad / Kobra-S1: klipper-kobra-s1](https://github.com/Kobra-S1/klipper-kobra-s1) – angepasste Klipper-Umgebung für den Kobra S1.
+- [Antiriad / Kobra-S1: ACEPRO](https://github.com/Kobra-S1/ACEPRO) – ACE-Pro-Anbindung und weitere Einrichtungsinformationen. Für die Verwendung des ACE Pro die dortigen Voraussetzungen beachten.
+
+Die verlinkten Anleitungen und ihre Kompatibilitätshinweise vorab lesen. KobraNest installiert diese Projekte oder Rinkhals nicht automatisch und flasht keine MCU-Firmware.
+
+## Required preparation: Rinkhals and Klipper tunneling
+
+**Before installing KobraNest, set up Rinkhals and the appropriate Klipper environment using Antiriad's Kobra-S1 repositories. Experience with Klipper tunneling over LAN or USB is required.**
+
+KobraNest provides the printer's local interface and system management. It does not replace prior setup of Klipper/Moonraker on the external host, compatible MCU firmware or the selected LAN/USB tunnel. Verify and understand the selected connection before switching systems. Rinkhals is used for access to the original system and the return/start app.
+
+Read the upstream setup and compatibility information first:
+
+- [Antiriad / Kobra-S1: klipper-kobra-s1](https://github.com/Kobra-S1/klipper-kobra-s1) — Kobra S1 Klipper environment.
+- [Antiriad / Kobra-S1: ACEPRO](https://github.com/Kobra-S1/ACEPRO) — ACE Pro integration and related setup information; follow its requirements when using ACE Pro.
+
+KobraNest does not automatically install these projects or Rinkhals, and does not flash MCU firmware.
+
 ## Installation
 
 Das vollständige Installationspaket **KobraNest-S1-v0.1.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.

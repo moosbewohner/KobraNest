@@ -1,5 +1,18 @@
 # KobraNest
 
+## Erforderliche Vorarbeiten: Rinkhals und Klipper-Tunneling
+
+**Vor der KobraNest-Installation müssen Rinkhals und die passende Klipper-Umgebung aus den von Antiriad gepflegten Kobra-S1-Repositories eingerichtet sein. Erfahrung mit Klipper-Tunneling über LAN oder USB wird vorausgesetzt.**
+
+KobraNest ergänzt die lokale Oberfläche und Systemverwaltung auf dem Drucker. Es ersetzt nicht die vorherige Einrichtung von Klipper/Moonraker auf dem externen Host, der passenden MCU-Firmware und des gewählten LAN-/USB-Tunnels. Die ausgewählte Verbindung sollte bereits funktionieren und verstanden sein, bevor das System umgestellt wird. Rinkhals wird unter anderem für den SSH-Zugang im Originalsystem und die Rückkehr-/Start-App benötigt.
+
+Anleitungen und projektspezifische Informationen:
+
+- [Antiriad / Kobra-S1: klipper-kobra-s1](https://github.com/Kobra-S1/klipper-kobra-s1) – angepasste Klipper-Umgebung für den Kobra S1.
+- [Antiriad / Kobra-S1: ACEPRO](https://github.com/Kobra-S1/ACEPRO) – ACE-Pro-Anbindung und weitere Einrichtungsinformationen. Für die Verwendung des ACE Pro die dortigen Voraussetzungen beachten.
+
+Die verlinkten Anleitungen und ihre Kompatibilitätshinweise vorab lesen. KobraNest installiert diese Projekte oder Rinkhals nicht automatisch und flasht keine MCU-Firmware.
+
 Neuer Projektname: KobraNest (bisher Kobrian). Bestehende technische Pfade und Dateinamen bleiben für die Kompatibilität erhalten.
 
 # Kobrian S1 – Installation und Bedienung

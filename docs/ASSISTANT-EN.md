@@ -1,5 +1,18 @@
 # KobraNest setup assistant
 
+## Required preparation: Rinkhals and Klipper tunneling
+
+**Before installing KobraNest, set up Rinkhals and the appropriate Klipper environment using Antiriad's Kobra-S1 repositories. Experience with Klipper tunneling over LAN or USB is required.**
+
+KobraNest provides the printer's local interface and system management. It does not replace prior setup of Klipper/Moonraker on the external host, compatible MCU firmware or the selected LAN/USB tunnel. Verify and understand the selected connection before switching systems. Rinkhals is used for access to the original system and the return/start app.
+
+Read the upstream setup and compatibility information first:
+
+- [Antiriad / Kobra-S1: klipper-kobra-s1](https://github.com/Kobra-S1/klipper-kobra-s1) — Kobra S1 Klipper environment.
+- [Antiriad / Kobra-S1: ACEPRO](https://github.com/Kobra-S1/ACEPRO) — ACE Pro integration and related setup information; follow its requirements when using ACE Pro.
+
+KobraNest does not automatically install these projects or Rinkhals, and does not flash MCU firmware.
+
 Extract the complete package on Windows x64 and run **Kobrian-Assistent.exe**.
 Keep the `_internal` folder beside the executable. Python is included.
 The assistant opens a local browser session, accessible only on this PC.
