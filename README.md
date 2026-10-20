@@ -8,6 +8,14 @@ Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional Kli
 
 ![KobraNest](branding/KobraNest-800x480.png)
 
+## Download
+
+**[Vollständiges Installationspaket mit Windows-EXE herunterladen / Download complete installer](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.0/KobraNest-S1-v0.1.zip)**
+
+[Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.0) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.0/KobraNest-S1-v0.1.zip.sha256)
+
+ZIP vollständig entpacken, dann **Start-KobraNest.cmd** oder **Kobrian-Assistent.exe** starten. `_internal` muss daneben bleiben. / Extract the complete ZIP, then run **Start-KobraNest.cmd** or **Kobrian-Assistent.exe**. Keep `_internal` beside it.
+
 ## Installation
 
 Das vollständige Installationspaket **KobraNest-S1-v0.1.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.

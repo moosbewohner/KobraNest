@@ -17,4 +17,6 @@ Before attaching the binary candidate publicly, finish the corresponding-source 
 
 Pending hardware confirmation: full cold start after the latest boot-logo and RTL8153B changes. Also track the wireless regulatory database signature warning.
 
-No repository has been created on GitHub and nothing has been pushed by this preparation step.
+Public repository: https://github.com/moosbewohner/KobraNest
+
+The complete binary preview is published separately as release v0.1.0. The source-provisioning gap above remains documented; publishing the preview does not resolve it.
