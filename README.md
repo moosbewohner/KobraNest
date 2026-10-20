@@ -24,6 +24,7 @@ KobraNest ergänzt die lokale Oberfläche und Systemverwaltung auf dem Drucker. 
 
 Anleitungen und projektspezifische Informationen:
 
+- [Rinkhals – Community-Firmware / Community firmware](https://github.com/rinkhals-community/Rinkhals) – Rinkhals vor der KobraNest-Installation einrichten. / Set up Rinkhals before installing KobraNest.
 - [Antiriad / Kobra-S1: klipper-kobra-s1](https://github.com/Kobra-S1/klipper-kobra-s1) – angepasste Klipper-Umgebung für den Kobra S1.
 - [Antiriad / Kobra-S1: ACEPRO](https://github.com/Kobra-S1/ACEPRO) – ACE-Pro-Anbindung und weitere Einrichtungsinformationen. Für die Verwendung des ACE Pro die dortigen Voraussetzungen beachten.
 
@@ -37,6 +38,7 @@ KobraNest provides the printer's local interface and system management. It does 
 
 Read the upstream setup and compatibility information first:
 
+- [Rinkhals – Community-Firmware / Community firmware](https://github.com/rinkhals-community/Rinkhals) – Rinkhals vor der KobraNest-Installation einrichten. / Set up Rinkhals before installing KobraNest.
 - [Antiriad / Kobra-S1: klipper-kobra-s1](https://github.com/Kobra-S1/klipper-kobra-s1) — Kobra S1 Klipper environment.
 - [Antiriad / Kobra-S1: ACEPRO](https://github.com/Kobra-S1/ACEPRO) — ACE Pro integration and related setup information; follow its requirements when using ACE Pro.
 
