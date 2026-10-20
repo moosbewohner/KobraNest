@@ -1,0 +1,17 @@
+#!/usr/bin/python3
+import email.utils
+import json
+from pathlib import Path
+import time
+import urllib.request
+
+for attempt in range(6):
+    try:
+        with urllib.request.urlopen("http://" + json.loads(Path("/etc/s1-settings.json").read_text())["pi_ip"] + ":7125/server/info", timeout=4) as response:
+            stamp = email.utils.parsedate_to_datetime(response.headers["Date"]).timestamp()
+        time.clock_settime(time.CLOCK_REALTIME, stamp)
+        print("Zeit vom Raspberry Pi uebernommen", flush=True)
+        break
+    except Exception as exc:
+        print(type(exc).__name__, flush=True)
+        time.sleep(5)

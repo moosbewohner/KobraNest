@@ -1,0 +1,19 @@
+FROM --platform=linux/arm/v7 s1-klipperscreen-test:local
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssh-server openssh-sftp-server busybox-static dropbear-bin socat procps \
+    python3 python3-venv python3-gi python3-cairo python3-gi-cairo \
+    gir1.2-gtk-3.0 gir1.2-vte-2.91 librsvg2-common xinput x11-xserver-utils \
+    tigervnc-standalone-server xauth fonts-dejavu-core ca-certificates dbus dbus-x11 libmpv2 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --chown=0:0 overlay/ /
+COPY --chown=0:0 payload/fb-vnc-viewer /usr/local/bin/fb-vnc-viewer
+RUN rm -rf /root && mkdir -m 700 /root && \
+    rm -f /etc/dropbear/*host_key* /etc/ssh/ssh_host_* /etc/ssh/s1_avnc_* /etc/shadow- /etc/gshadow- && \
+    usermod -p '!' root && \
+    truncate -s 0 /etc/machine-id && rm -f /var/lib/dbus/machine-id && echo kobra-s1 >/etc/hostname && \
+    find /var/log -type f -exec truncate -s 0 {} \; && \
+    chmod 755 /usr/local/sbin/s1-* /usr/local/bin/fb-vnc-viewer && \
+    mkdir -p /proc /sys /dev /run /tmp /useremain /.oldroot && \
+    ln -sf /bin/busybox /sbin/init && ln -sf /bin/busybox /sbin/reboot && ln -sf /bin/busybox /sbin/poweroff && \
+    echo s1-debian-candidate-v1 >/etc/s1-boot-ready

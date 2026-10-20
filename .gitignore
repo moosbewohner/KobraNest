@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+settings.json
+device-work/
+pi-config/
+_internal/
+*.exe
+payload/*.tar.gz
+payload/fb-vnc-viewer
+release-assets/
+*.img
+*.log
+known_hosts*
+*private*key*
+.env

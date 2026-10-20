@@ -1,0 +1,50 @@
+#!/bin/sh
+set -eu
+PI_IP=$(/usr/bin/python3 -c "import json,ipaddress; from pathlib import Path; p=Path('/etc/s1-web.json'); p=p if p.exists() else Path('/etc/s1-settings.json'); print(ipaddress.IPv4Address(json.loads(p.read_text())['pi_ip']))")
+HP=
+cleanup() {
+    if [ -n "$HP" ]; then
+        kill "$HP" 2>/dev/null || true
+        count=0
+        while kill -0 "$HP" 2>/dev/null && [ "$count" -lt 30 ]; do
+            sleep 0.1; count=$((count+1))
+        done
+        kill -KILL "$HP" 2>/dev/null || true
+        wait "$HP" 2>/dev/null || true
+    fi
+    rm -f /run/s1/helix.pid
+}
+trap cleanup EXIT
+trap 'exit 0' TERM INT
+mkdir -p /root/.helixscreen /run/s1
+# Wait for the local WLAN control socket before initializing Helix WiFi.
+if [ -x /usr/sbin/wpa_cli ] && [ -f /etc/wpa_supplicant/s1.conf ]; then
+    count=0
+    while ! /usr/sbin/wpa_cli -p /run/wpa_supplicant -i wlan0 ping 2>/dev/null | /bin/busybox grep -q PONG; do
+        [ "$count" -lt 20 ] || break
+        sleep 1; count=$((count+1))
+    done
+fi
+echo 90 >/run/s1/splash.progress
+sleep 0.2
+echo 100 >/run/s1/splash.progress
+sleep 0.3
+: >/run/s1/splash.stop
+count=0
+while [ ! -e /run/s1/splash.done ] && [ "$count" -lt 20 ]; do
+    sleep 0.1; count=$((count+1))
+done
+if [ ! -e /run/s1/splash.done ] && [ -r /run/s1/splash.pid ]; then
+    kill "$(cat /run/s1/splash.pid)" 2>/dev/null || true
+fi
+/usr/local/sbin/s1-display-init
+: >/var/log/HelixScreen.log
+cd /opt/helixscreen
+HOME=/root/.helixscreen HELIX_DISPLAY_BACKEND=fbdev \
+    ./bin/helix-screen-fbdev --size 800x480 --rotate 180 --skip-wizard \
+    --no-sound --skip-splash --render-2d \
+    --moonraker "ws://$PI_IP:7125" --log-dest console \
+    >>/var/log/HelixScreen.log 2>&1 &
+HP=$!
+echo "$HP" >/run/s1/helix.pid
+wait "$HP"

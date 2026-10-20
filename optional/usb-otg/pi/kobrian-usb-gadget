@@ -1,0 +1,32 @@
+#!/bin/bash
+set -euo pipefail
+# Only this dedicated gadget is managed; never unbind another gadget.
+modprobe libcomposite
+mountpoint -q /sys/kernel/config || mount -t configfs configfs /sys/kernel/config
+G=/sys/kernel/config/usb_gadget/kobrian
+mkdir -p "$G"
+cd "$G"
+if [ -s UDC ] && [ -n "$(cat UDC)" ]; then exit 0; fi
+mapfile -t controllers < <(find /sys/class/udc -mindepth 1 -maxdepth 1 -printf '%f\n')
+[ "${#controllers[@]}" = 1 ] || { echo 'Exactly one available UDC required' >&2; exit 1; }
+for other in /sys/kernel/config/usb_gadget/*/UDC; do
+    [ -f "$other" ] || continue
+    [ -f "$other" ] || continue
+    [ "$other" = "$G/UDC" ] && continue
+    [ -z "$(cat "$other")" ] || { echo 'Another gadget is active; refusing' >&2; exit 1; }
+done
+# Preserve function order: MCU1=ttyGS0, MCU2=ttyGS1, ttyGS2 reserved.
+echo 0x1d6b > idVendor
+echo 0x0104 > idProduct
+echo 0x0100 > bcdDevice
+echo 0x0200 > bcdUSB
+mkdir -p strings/0x409 configs/c.1/strings/0x409
+cat /etc/machine-id > strings/0x409/serialnumber
+echo KlipperPi > strings/0x409/manufacturer
+echo KobrianSerialBridge > strings/0x409/product
+echo 'MCU serial' > configs/c.1/strings/0x409/configuration
+for i in 0 1 2; do
+    mkdir -p "functions/acm.usb$i"
+    [ -L "configs/c.1/acm.usb$i" ] || ln -s "$G/functions/acm.usb$i" "configs/c.1/acm.usb$i"
+done
+echo "${controllers[0]}" > UDC

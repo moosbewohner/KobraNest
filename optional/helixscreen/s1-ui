@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+UI=$(cat /etc/s1-ui 2>/dev/null || echo klipperscreen)
+echo $$ > /run/s1/ui.pid
+sleep 1
+case "$UI" in
+    helix) echo helix >/run/s1/ui.current; exec /usr/local/sbin/s1-helix ;;
+    klipperscreen) echo klipperscreen >/run/s1/ui.current; exec /usr/local/sbin/s1-gui ;;
+    *) echo 'Ungueltige Auswahl; KlipperScreen wird verwendet' >&2
+       echo klipperscreen >/run/s1/ui.current; exec /usr/local/sbin/s1-gui ;;
+esac

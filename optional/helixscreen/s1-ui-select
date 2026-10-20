@@ -1,0 +1,25 @@
+#!/usr/bin/python3
+"""Persist and switch the S1 interface without restarting MCU tunnels."""
+import argparse
+import os
+from pathlib import Path
+import signal
+
+p=argparse.ArgumentParser(description=__doc__)
+p.add_argument('interface',choices=['helix','klipperscreen'])
+a=p.parse_args()
+target=Path('/etc/s1-ui')
+pending=target.with_suffix('.new')
+pending.write_text(a.interface+'\n')
+os.replace(pending,target)
+os.sync()
+pidfile=Path('/run/s1/ui.pid')
+if pidfile.exists():
+    pid=int(pidfile.read_text())
+    proc=Path('/proc')/str(pid)/'cmdline'
+    if proc.exists():
+        command=proc.read_bytes()
+        if not any(x in command for x in (b'/usr/local/sbin/s1-gui',b'/usr/local/sbin/s1-helix',b'/usr/local/sbin/s1-ui')):
+            raise SystemExit('Auswahl gespeichert, aber unerwarteter GUI-Prozess; nicht beendet')
+        os.kill(pid,signal.SIGTERM)
+print('Gespeichert und ausgewaehlt:',a.interface)

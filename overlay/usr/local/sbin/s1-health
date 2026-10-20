@@ -1,0 +1,81 @@
+#!/usr/bin/python3
+# Local-only Kobrian boot health: external Pi, LAN adapter and MCU links are optional.
+import json
+import os
+from pathlib import Path
+import subprocess
+import time
+
+LOG = Path('/var/log/s1-boot-health.log')
+MARKER = Path('/useremain/s1-klipperscreen-test/boot-attempt')
+
+
+def read(path, default=''):
+    try:
+        return Path(path).read_text().strip()
+    except OSError:
+        return default
+
+
+def alive(name):
+    pid = read('/run/s1/' + name + '.pid')
+    return pid.isdigit() and Path('/proc/' + pid).exists()
+
+
+def local_status():
+    listeners = set()
+    for line in read('/proc/net/tcp').splitlines()[1:]:
+        fields = line.split()
+        if len(fields) > 3 and fields[3] == '0A':
+            listeners.add(int(fields[1].split(':')[1], 16))
+    port = 8080
+    try:
+        port = int(json.loads(read('/etc/s1-web.json', '{}')).get('port', 8080))
+    except (ValueError, TypeError):
+        pass
+    ui = read('/run/s1/ui.current', read('/etc/s1-ui', 'klipperscreen'))
+    gui = alive('helix') if ui == 'helix' else all(alive(n) for n in ('xvnc', 'viewer', 'python'))
+    writable = any(len(parts) > 3 and parts[1] == '/' and parts[2] == 'ext4'
+                   and 'rw' in parts[3].split(',')
+                   for parts in (line.split() for line in read('/proc/mounts').splitlines()))
+    return {'root_writable': writable, 'ssh': 22 in listeners,
+            'gui': gui, 'web': port in listeners, 'ui': ui}
+
+
+def acceptable(status):
+    return status['root_writable'] and status['ssh'] and (status['gui'] or status['web'])
+
+
+def main():
+    if 'root=/dev/mmcblk0p9' not in read('/proc/cmdline') or not Path('/etc/s1-boot-ready').is_file():
+        LOG.write_text('Boot-Bestaetigung abgelehnt: kein Kobrian-Slot B.\n')
+        return 1
+    previous = None
+    for _ in range(90):
+        status = local_status()
+        if status != previous:
+            with LOG.open('a') as file:
+                file.write('Lokaler Startstatus: ' + json.dumps(status) + '\n')
+            previous = status
+        if acceptable(status):
+            try:
+                result = subprocess.run(['/usr/local/sbin/s1-bootcontrol', '--misc=now', '--mode=retry'],
+                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=15)
+                if result.returncode != 0:
+                    raise RuntimeError('Bootcontrol meldet Fehler')
+                MARKER.unlink(missing_ok=True)
+                os.sync()
+                with LOG.open('a') as file:
+                    file.write('Kobrian lokal erfolgreich gestartet. Pi und MCU-Verbindungen sind keine Bootvoraussetzung.\n')
+                return 0
+            except (OSError, RuntimeError, subprocess.TimeoutExpired) as error:
+                with LOG.open('a') as file:
+                    file.write('Bestaetigung noch nicht moeglich: ' + type(error).__name__ + '\n')
+        time.sleep(2)
+    with LOG.open('a') as file:
+        file.write('Lokaler Start nicht bestaetigt. Stock-Fallback bleibt fuer den naechsten Start erhalten.\n')
+    return 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

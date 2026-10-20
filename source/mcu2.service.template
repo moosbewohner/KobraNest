@@ -1,0 +1,17 @@
+[Unit]
+Description=Socat PTY bridge (/dev/ttyMCU2 -> @PRINTER_IP@:7005)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/socat -d -d \
+  PTY,link=/dev/ttyMCU2,raw,echo=0,mode=660,group=dialout,wait-slave,pty-interval=0.1,sitout-eio=5 \
+  TCP:@PRINTER_IP@:7005,nodelay,keepalive,forever,interval=1
+Restart=always
+RestartSec=1
+ExecStopPost=/bin/rm -f /dev/ttyMCU2
+SyslogIdentifier=socat-ttyMCU2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,54 @@
+#!/usr/bin/python3
+"""Short startup chime on the verified S1 buzzer: pwmchip0, channel 0."""
+import fcntl
+from contextlib import suppress
+from pathlib import Path
+import time
+
+PWM = Path('/sys/class/pwm/pwmchip0/pwm0')
+NOTES = ((523, 0.12), (659, 0.12), (784, 0.12), (1047, 0.24))
+
+def write(name, value):
+    (PWM / name).write_text(str(value))
+
+def main():
+    if Path('/etc/s1-jingle.disabled').exists():
+        return
+    with open('/run/s1/jingle.lock', 'w') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        if not PWM.exists():
+            Path('/sys/class/pwm/pwmchip0/export').write_text('0')
+            for _ in range(20):
+                if (PWM / 'enable').exists():
+                    break
+                time.sleep(0.025)
+        if (PWM / 'enable').read_text().strip() == '1':
+            print('Summer bereits aktiv; Startmelodie uebersprungen', flush=True)
+            return
+        try:
+            for frequency, duration in NOTES:
+                if int((PWM / 'period').read_text()) > 0:
+                    write('duty_cycle', 0)
+                period = round(1_000_000_000 / frequency / 1000) * 1000
+                try:
+                    write('period', period)
+                except OSError:
+                    period = round(period / 10000) * 10000
+                    write('period', period)
+                write('duty_cycle', period * 40 // 100)
+                write('enable', 1)
+                time.sleep(duration)
+                write('enable', 0)
+                time.sleep(0.04)
+            print('Kobrian-Startmelodie abgespielt', flush=True)
+        finally:
+            with suppress(OSError):
+                write('enable', 0)
+            with suppress(OSError):
+                write('duty_cycle', 0)
+
+if __name__ == '__main__':
+    main()

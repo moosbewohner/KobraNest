@@ -1,0 +1,56 @@
+#!/usr/bin/python3
+"""Boot splash with milestone progress. No framebuffer writes after handoff."""
+import fcntl
+import os
+from pathlib import Path
+import struct
+import time
+
+RUN = Path('/run/s1')
+WIDTH, HEIGHT = 800, 480
+
+def frame(base, percent):
+    data = bytearray(base)
+    # Logical bottom bar; framebuffer and original logo are rotated 180 degrees.
+    for y in range(456, 466):
+        for x in range(80, 720):
+            border = y in (456, 465) or x in (80, 719)
+            fill = 82 <= x < 82 + int(636 * percent / 100) and 458 <= y < 464
+            pixel = bytes((25, 190, 255, 0)) if border or fill else bytes((12, 12, 12, 0))
+            at = ((HEIGHT - 1 - y) * WIDTH + WIDTH - 1 - x) * 4
+            data[at:at + 4] = pixel
+    return data
+
+def main():
+    base = Path('/usr/local/share/s1-splash/kobrian.bgrx').read_bytes()
+    assert len(base) == WIDTH * HEIGHT * 4
+    fd = os.open('/dev/fb0', os.O_RDWR)
+    try:
+        mode = bytearray(160)
+        fcntl.ioctl(fd, 0x4600, mode)
+        assert tuple(struct.unpack_from('I', mode, p)[0] for p in (0, 4, 24, 32, 44, 56)) == (800, 480, 32, 16, 8, 0)
+        # Activate fbdev so our framebuffer replaces the early DRM bootlogo plane.
+        struct.pack_into('I', mode, 84, 128)
+        fcntl.ioctl(fd, 0x4601, mode)
+        last = None
+        deadline = time.monotonic() + 100
+        while not (RUN / 'splash.stop').exists() and time.monotonic() < deadline:
+            try:
+                percent = max(0, min(100, int((RUN / 'splash.progress').read_text())))
+            except (OSError, ValueError):
+                percent = 5
+            if percent != last:
+                data = frame(base, percent)
+                written = 0
+                while written < len(data):
+                    written += os.pwrite(fd, data[written:], written)
+                last = percent
+            time.sleep(0.1)
+    finally:
+        os.close(fd)
+
+if __name__ == '__main__':
+    try:
+        main()
+    finally:
+        (RUN / 'splash.done').touch()

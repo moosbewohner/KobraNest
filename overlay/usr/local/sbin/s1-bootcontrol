@@ -1,0 +1,3 @@
+#!/bin/sh
+# Originales Rockchip-Werkzeug mit getrennter uClibc-Laufzeit.
+LD_LIBRARY_PATH=/opt/rockchip-bootcontrol exec /opt/rockchip-bootcontrol/rk_ota "$@"

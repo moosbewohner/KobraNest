@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+"""Static LAN for printer traffic, independent DHCP WLAN for administration."""
+import fcntl,ipaddress,json,pathlib,signal,subprocess,time
+P=pathlib.Path;run=P('/run/s1');run.mkdir(exist_ok=True,parents=True)
+lock=(run/'network.lock').open('w');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+config=json.loads(P('/etc/s1-dual-network.json').read_text())
+address=str(ipaddress.ip_interface(config['address']));gateway=str(ipaddress.ip_address(config['gateway']))
+IP='/usr/sbin/ip';wpa=None;dhcp=None;lan_dhcp=None;stopping=False
+
+def ip(*args):return subprocess.run([IP,*args],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10).returncode
+
+def stop(*_):
+ global stopping
+ stopping=True
+for sig in (signal.SIGTERM,signal.SIGINT):signal.signal(sig,stop)
+def finish(child):
+ if child is not None and child.poll() is None:
+  child.terminate()
+  try:child.wait(timeout=5)
+  except subprocess.TimeoutExpired:child.kill();child.wait()
+try:
+ for name in ('cfg80211','RTL8723DS'):
+  if not P('/sys/module/'+name).exists():subprocess.run(['/bin/busybox','insmod','/opt/s1-wifi/'+name+'.ko'],check=True)
+ # Skip routes whose physical link is down, including an unplugged LAN cable.
+ for name in ('all','default','eth1','wlan0'):
+  knob=P('/proc/sys/net/ipv4/conf')/name/'ignore_routes_with_linkdown'
+  if knob.exists():knob.write_text('1')
+ ip('link','set','wlan0','up')
+ while not stopping:
+  if P('/usr/local/sbin/s1-realtek-init').exists():subprocess.run(['/usr/local/sbin/s1-realtek-init'],timeout=30)
+  # Support a LAN adapter inserted after boot, without touching WLAN addresses.
+  if config.get('primary_interface','eth1')=='eth1' and P('/sys/class/net/eth1').exists():
+   ip('link','set','eth1','up')
+   ip('addr','replace',address,'dev','eth1')
+   ip('route','replace','default','via',gateway,'dev','eth1','metric','0')
+  if config.get('primary_interface')=='wlan0' and P('/sys/class/net/eth1').exists():
+   ip('link','set','eth1','up')
+   if lan_dhcp is None or lan_dhcp.poll() is not None:
+    lan_dhcp=subprocess.Popen(['/bin/busybox','udhcpc','-f','-i','eth1','-s','/usr/local/sbin/s1-wifi-dhcp','-p','/run/s1/lan-dhcp.pid','-t','3','-T','3','-A','10'],umask=0o077)
+  profile=P('/etc/wpa_supplicant/s1.conf')
+  if not profile.exists():time.sleep(5);continue
+  profile.chmod(0o600)
+  if wpa is None or wpa.poll() is not None:
+   wpa=subprocess.Popen(['/usr/sbin/wpa_supplicant','-i','wlan0','-D','nl80211,wext','-c',str(profile)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,umask=0o077)
+  if dhcp is None or dhcp.poll() is not None:
+   dhcp=subprocess.Popen(['/bin/busybox','udhcpc','-f','-i','wlan0','-s','/usr/local/sbin/s1-wifi-dhcp','-p','/run/s1/wifi-dhcp.pid','-t','3','-T','3','-A','10'],umask=0o077)
+  (run/'network.active').write_text('Primary '+config.get('primary_interface','eth1')+'; WLAN DHCP\n')
+  time.sleep(2)
+finally:
+ finish(lan_dhcp);finish(dhcp);finish(wpa)

@@ -1,0 +1,58 @@
+#!/usr/bin/python3
+"""Foreground bridge for BusyBox init; no GPIO reset on disconnect."""
+import fcntl, os, pathlib, signal, subprocess, sys, time
+channel = sys.argv[1]
+if channel not in ('mcu1', 'mcu2'):
+    raise SystemExit('Expected mcu1 or mcu2')
+interface, uart = {'mcu1': ('00', '/dev/ttyS3'), 'mcu2': ('02', '/dev/ttyS5')}[channel]
+run = pathlib.Path('/run/s1'); run.mkdir(parents=True, exist_ok=True)
+lock = (run / (channel + '-usb.lock')).open('w')
+fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+child = None
+stopping = False
+pidfile = run / (channel + '-usb.pid')
+def stop(*_):
+    global stopping
+    stopping = True
+    if child is not None and child.poll() is None:
+        child.terminate()
+for sig in (signal.SIGTERM, signal.SIGINT):
+    signal.signal(sig, stop)
+def find():
+    matches = []
+    for tty in pathlib.Path('/sys/class/tty').glob('ttyACM*'):
+        path = (tty / 'device').resolve()
+        iface = next((p for p in (path, *path.parents) if (p/'bInterfaceNumber').exists()), None)
+        usb = next((p for p in (path, *path.parents) if (p/'idVendor').exists()), None)
+        try:
+            if iface is not None and usb is not None and (iface/'bInterfaceNumber').read_text().strip() == interface and (usb/'idVendor').read_text().strip().lower() == '1d6b' and (usb/'idProduct').read_text().strip().lower() == '0104':
+                dev = pathlib.Path('/dev') / tty.name
+                if dev.is_char_device(): matches.append(str(dev))
+        except OSError:
+            continue
+    # Refuse an ambiguous second gadget instead of connecting to the wrong MCU.
+    return matches[0] if len(matches) == 1 else None
+try:
+    while not stopping:
+        device = find()
+        if not device:
+            time.sleep(1); continue
+        child = subprocess.Popen(['/usr/bin/nice', '-n', '-20', '/usr/bin/socat', '-d', '-d', 'OPEN:'+device+',rawer,echo=0,clocal,crtscts=0', 'OPEN:'+uart+',rawer,b576000,echo=0,clocal,crtscts=0'])
+        pidfile.write_text(str(child.pid))
+        while child.poll() is None and not stopping:
+            if find() != device:
+                child.terminate(); break
+            time.sleep(1)
+        try: child.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            child.kill(); child.wait()
+        pidfile.unlink(missing_ok=True)
+        child = None
+        if not stopping: time.sleep(1)
+finally:
+    if child is not None and child.poll() is None:
+        child.terminate()
+        try: child.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            child.kill(); child.wait()
+    pidfile.unlink(missing_ok=True)

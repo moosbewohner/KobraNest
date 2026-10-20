@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+case "${1:-}" in ''|--prepare) ;; *) echo 'Usage: s1-return-to-stock [--prepare]' >&2; exit 1 ;; esac
+grep -q 'root=/dev/mmcblk0p9' /proc/cmdline || { echo 'Nur aus Slot B ausfuehren' >&2; exit 1; }
+/usr/local/sbin/s1-bootcontrol --misc=other --mode=retry
+sync
+echo 'Anycubic-Slot vorbereitet. Kein automatischer Neustart.'
+if [ "${1:-}" != --prepare ]; then
+    /sbin/poweroff
+fi

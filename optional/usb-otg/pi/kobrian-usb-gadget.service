@@ -1,0 +1,12 @@
+[Unit]
+Description=Kobrian optional USB serial gadget
+After=systemd-modules-load.service
+Before=klipper.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/kobrian-usb-gadget
+
+[Install]
+WantedBy=multi-user.target

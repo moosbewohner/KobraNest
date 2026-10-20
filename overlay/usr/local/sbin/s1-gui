@@ -1,0 +1,42 @@
+#!/bin/sh
+set -eu
+XP=; VP=; KP=
+cleanup() { for p in $KP $VP $XP; do kill "$p" 2>/dev/null || true; done; }
+trap cleanup EXIT
+trap 'exit 0' TERM INT
+echo 55 > /run/s1/splash.progress
+/usr/bin/Xtigervnc :11 -geometry 800x480 -depth 24 -SecurityTypes None -localhost yes -rfbport 5911 -nolisten tcp -ac -AlwaysShared &
+XP=$!
+echo "$XP" > /run/s1/xvnc.pid
+sleep 3
+kill -0 "$XP"
+echo 70 > /run/s1/splash.progress
+: > /var/log/KlipperScreen.log
+HOME=/root DISPLAY=:11 GDK_BACKEND=x11 LIBGL_ALWAYS_SOFTWARE=1 NO_AT_BRIDGE=1 /opt/ks-env/bin/python /opt/KlipperScreen/screen.py -c /etc/KlipperScreen.conf -l /var/log/KlipperScreen.log &
+KP=$!
+echo "$KP" > /run/s1/python.pid
+# Hold splash until the UI connects, with a bounded wait so error screens stay accessible.
+count=0
+while [ "$count" -lt 30 ] && kill -0 "$KP" 2>/dev/null; do
+    if grep -q 'Moonraker Connected' /var/log/KlipperScreen.log; then
+        echo 100 > /run/s1/splash.progress
+        sleep 1
+        break
+    fi
+    sleep 1
+    count=$((count+1))
+done
+: > /run/s1/splash.stop
+count=0
+while [ ! -e /run/s1/splash.done ] && [ "$count" -lt 20 ]; do
+    sleep 0.1
+    count=$((count+1))
+done
+if [ ! -e /run/s1/splash.done ] && [ -r /run/s1/splash.pid ]; then
+    kill "$(cat /run/s1/splash.pid)" 2>/dev/null || true
+fi
+/usr/local/sbin/s1-display-init
+VIEWER_TOUCH_ROTATION=180 VIEWER_TOUCH_SWAP_XY=0 /usr/local/bin/fb-vnc-viewer -t /dev/input/event0 -r 180 -p 5911 -b 32 -u 125 -d 1 127.0.0.1 &
+VP=$!
+echo "$VP" > /run/s1/viewer.pid
+wait "$KP"

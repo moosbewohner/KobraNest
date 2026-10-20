@@ -1,0 +1,22 @@
+{
+  "$version": "1",
+  "name": "KobraNest starten",
+  "description": "Einmalig zu KobraNest wechseln und S1 neu starten. Nur ohne laufenden Druck verwenden.",
+  "version": "0.1.2",
+  "properties": {
+    "boot_confirmation": {
+      "display": "Neustart bestaetigen: KOBRIAN eingeben",
+      "type": "text",
+      "default": ""
+    },
+    "idle_confirmed": {
+      "display": "Geprueft: Kein Druck aktiv",
+      "type": "enum",
+      "options": [
+        "False",
+        "True"
+      ],
+      "default": "False"
+    }
+  }
+}

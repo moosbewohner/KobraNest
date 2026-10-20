@@ -1,0 +1,506 @@
+#!/usr/bin/python3
+"""Small local recovery dashboard; Python standard library, BusyBox-init compatible."""
+import hashlib
+import hmac
+import ipaddress
+import json
+import os
+import re
+from pathlib import Path
+import secrets
+import signal
+import socket
+import subprocess
+import threading
+import time
+from http.cookies import SimpleCookie
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit, parse_qs
+from urllib.request import Request, urlopen, ProxyHandler, build_opener
+
+CONFIG_PATH = Path(os.environ.get('KOBRIAN_WEB_CONFIG', '/etc/s1-web.json'))
+CONFIG = json.loads(CONFIG_PATH.read_text())
+PI = str(ipaddress.IPv4Address(CONFIG['pi_ip']))
+PAGE = Path(os.environ.get('KOBRIAN_WEB_PAGE', '/opt/kobrian-web/index.html')).read_bytes()
+OPENER = build_opener(ProxyHandler({}))
+SESSIONS = {}
+ATTEMPTS = {}
+AUTH_LOCK = threading.Lock()
+ACTION_LOCK = threading.Lock()
+ACCOUNT_LOCK = threading.Lock()
+SETUP_TOKEN = secrets.token_urlsafe(32)
+CACHE_LOCK = threading.Lock()
+CACHE = {'loading': True, 'updated': 0}
+LOGS = {
+    'web': '/var/log/s1-web.log', 'display': '/var/log/s1-gui.log',
+    'helix': '/var/log/HelixScreen.log', 'klipperscreen': '/var/log/KlipperScreen.log',
+    'mcu1': '/var/log/mcu1.log', 'mcu2': '/var/log/mcu2.log',
+    'network': '/var/log/s1-network.log', 'boot': '/var/log/s1-boot.log',
+    'health': '/var/log/s1-boot-health.log',
+}
+
+
+def needs_setup():
+    return CONFIG.get('setup_required', False) or not CONFIG.get('password_hash')
+
+
+def new_credentials(data):
+    username = data.get('username', '')
+    password = data.get('password', '')
+    if not isinstance(username, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{3,32}', username):
+        raise ValueError('Benutzername: 3 bis 32 Zeichen, Buchstaben, Ziffern, Punkt, _ oder -.')
+    if not isinstance(password, str) or not 8 <= len(password) <= 256:
+        raise ValueError('Das Passwort muss 8 bis 256 Zeichen lang sein.')
+    if password != data.get('password_repeat'):
+        raise ValueError('Die Passwoerter stimmen nicht ueberein.')
+    salt = secrets.token_bytes(16)
+    return {'username': username, 'salt': salt.hex(), 'iterations': 100000,
+            'password_hash': hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000).hex(),
+            'setup_required': False}
+
+
+def save_credentials(credentials):
+    updated = dict(CONFIG, **credentials)
+    path = CONFIG_PATH
+    pending = path.with_suffix('.account-new')
+    with pending.open('w') as file:
+        os.chmod(pending, 0o600)
+        json.dump(updated, file, indent=2)
+        file.write('\n')
+        file.flush()
+        os.fsync(file.fileno())
+    os.replace(pending, path)
+    os.sync()
+    with AUTH_LOCK:
+        CONFIG.update(updated)
+        SESSIONS.clear()
+
+
+def read(path, default=''):
+    try:
+        return Path(path).read_text().strip()
+    except OSError:
+        return default
+
+
+def command(args, timeout=5):
+    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=True).stdout
+
+
+def api(path):
+    with OPENER.open('http://' + PI + ':7125' + path, timeout=2) as response:
+        return json.load(response)['result']
+
+
+def printer_state():
+    result = {'reachable': False, 'state': 'unknown', 'message': 'Pi/Moonraker nicht erreichbar',
+              'print_state': 'unknown'}
+    try:
+        info = api('/server/info')
+        result.update(reachable=True, state=info.get('klippy_state', 'unknown'),
+                      message=info.get('klippy_state', 'unknown'))
+        if result['state'] == 'ready':
+            status = api('/printer/objects/query?webhooks&print_stats&extruder&heater_bed&virtual_sdcard')['status']
+            stats = status.get('print_stats', {})
+            result.update(print_state=stats.get('state', 'unknown'),
+                          filename=stats.get('filename', ''),
+                          duration=stats.get('print_duration', 0),
+                          progress=status.get('virtual_sdcard', {}).get('progress'),
+                          message=status.get('webhooks', {}).get('state_message', ''),
+                          temperatures={name: {key: status.get(name, {}).get(key)
+                                               for key in ('temperature', 'target')}
+                                        for name in ('extruder', 'heater_bed')})
+    except Exception:
+        pass
+    return result
+
+
+def tcp_status():
+    entries = []
+    for line in read('/proc/net/tcp').splitlines()[1:]:
+        fields = line.split()
+        if len(fields) > 9:
+            entries.append((int(fields[1].split(':')[1], 16), fields[3]))
+    return {str(port): {'listening': (port, '0A') in entries,
+                        'connected': (port, '01') in entries}
+            for port in (22, 7003, 7005)}
+
+
+def running(pidfile):
+    value = read(pidfile)
+    return value.isdigit() and Path('/proc/' + value).exists()
+
+
+def tunnel_options():
+    channels = {}
+    for tty in Path('/sys/class/tty').glob('ttyACM*'):
+        path = (tty / 'device').resolve()
+        interface = next((p for p in (path, *path.parents) if (p / 'bInterfaceNumber').exists()), None)
+        usb = next((p for p in (path, *path.parents) if (p / 'idVendor').exists()), None)
+        if interface and usb and read(usb / 'idVendor').lower() == '1d6b' and read(usb / 'idProduct').lower() == '0104':
+            number = read(interface / 'bInterfaceNumber')
+            if number in ('00', '02'):
+                channels.setdefault(number, []).append('/dev/' + tty.name)
+    installed = (Path('/usr/local/sbin/s1-usb-bridge').is_file()
+                 and '# Optional USB OTG transport' in read('/usr/local/sbin/s1-service'))
+    usb_ready = installed and all(len(channels.get(number, [])) == 1 for number in ('00', '02'))
+    lan_ready = read('/sys/class/net/eth1/carrier') == '1'
+    configured = re.search(r'^PRINTER_IP=([0-9.]+)$', read('/etc/s1-network.conf'), re.M)
+    network_ready = bool(configured) and any(item['carrier'] and configured[1] in item['addresses'] for item in network_interfaces() if item['name'] in ('eth1','wlan0'))
+    return {'usb_installed': installed, 'usb_ready': usb_ready, 'lan_ready': lan_ready,
+            'network_ready': network_ready, 'usb_devices': channels,
+            'usb_message': ('Beide USB-Serial-Kanäle erkannt.' if usb_ready else
+                            'USB-Erweiterung nicht installiert.' if not installed else
+                            'Kein eindeutiges Pi-USB-Gadget mit beiden MCU-Kanälen erkannt.'),
+            'usb_running': {name: running('/run/s1/' + name + '-usb.pid') for name in ('mcu1', 'mcu2')}}
+
+
+def network_interfaces():
+    try:
+        entries = json.loads(command(['/usr/sbin/ip', '-j', '-4', 'addr', 'show']))
+    except Exception:
+        # The base image only includes BusyBox ip, without JSON output.
+        import fcntl
+        import struct
+        entries = []
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            for path in sorted(Path('/sys/class/net').iterdir()):
+                entry = {'ifname': path.name, 'address': read(path / 'address'), 'addr_info': []}
+                try:
+                    result = fcntl.ioctl(sock.fileno(), 0x8915, struct.pack('256s', path.name.encode()[:15]))
+                    entry['addr_info'].append({'local': socket.inet_ntoa(result[20:24])})
+                except OSError:
+                    pass  # Interface exists but has no IPv4 address.
+                entries.append(entry)
+    return [{'name': item['ifname'], 'mac': item.get('address', ''),
+             'carrier': read('/sys/class/net/' + item['ifname'] + '/carrier') == '1',
+             'addresses': [address['local'] for address in item.get('addr_info', [])]}
+            for item in entries if item['ifname'] != 'lo']
+
+
+def collect():
+    memory = {}
+    for line in read('/proc/meminfo').splitlines():
+        key, value = line.split(':', 1)
+        if key in ('MemTotal', 'MemAvailable'):
+            memory[key] = int(value.split()[0]) * 1024
+    interfaces = network_interfaces()
+    disk = os.statvfs('/')
+    default_ui = 'klipperscreen' if Path('/opt/KlipperScreen/screen.py').is_file() else 'unknown'
+    ui = read('/run/s1/ui.current', read('/etc/s1-ui', default_ui))
+    gui = running('/run/s1/helix.pid') if ui == 'helix' else running('/run/s1/python.pid')
+    return {'loading': False, 'updated': time.time(), 'hostname': socket.gethostname(),
+            'uptime': float(read('/proc/uptime', '0 0').split()[0]),
+            'memory': memory, 'disk': {'total': disk.f_blocks * disk.f_frsize,
+                                     'free': disk.f_bavail * disk.f_frsize},
+            'interfaces': interfaces, 'ui': ui, 'ui_running': gui,
+            'ui_control_available': Path('/usr/local/sbin/s1-ui-select').is_file(),
+            'ui_next': read('/etc/s1-ui', ui), 'tunnel_mode': read('/etc/s1-tunnel-mode', 'network'),
+            'tunnel_options': tunnel_options(),
+            'ports': tcp_status(), 'pi_ip': PI, 'printer': printer_state(),
+            'light': read('/sys/class/gpio/gpio117/value', 'unknown'),
+            'stock_available': Path('/usr/local/sbin/s1-return-to-stock').is_file(),
+            'helix_available': Path('/opt/helixscreen/bin/helix-screen-fbdev').is_file(),
+            'klipperscreen_available': Path('/opt/KlipperScreen/screen.py').is_file()}
+
+
+def sampler():
+    global CACHE
+    while True:
+        try:
+            current = collect()
+            with CACHE_LOCK:
+                CACHE = current
+        except Exception as error:
+            print('Status collection:', type(error).__name__, flush=True)
+        time.sleep(5)
+
+
+def safe_tail(name):
+    path = Path(LOGS[name])
+    try:
+        with path.open('rb') as file:
+            file.seek(0, 2)
+            file.seek(max(0, file.tell() - 24000))
+            return file.read(24000).decode('utf-8', errors='replace')
+    except OSError:
+        return 'Noch kein Log vorhanden.\n'
+
+
+def restart_tunnel(channel):
+    port = {'mcu1': '7003', 'mcu2': '7005'}[channel]
+    if read('/etc/s1-tunnel-mode', 'network') != 'network':
+        raise ValueError('Dieser Neustart ist nur fuer den Netzwerk-Tunnel verfuegbar.')
+    pids = []
+    for proc in Path('/proc').iterdir():
+        if not proc.name.isdigit():
+            continue
+        try:
+            args = (proc / 'cmdline').read_bytes().split(b'\0')
+        except OSError:
+            continue
+        if args and Path(os.fsdecode(args[0])).name == 'socat' and any(
+                a.startswith(('TCP-LISTEN:' + port + ',').encode()) for a in args):
+            pids.append(int(proc.name))
+    if not pids:
+        raise ValueError('Kein passender Tunnelprozess gefunden. Keine Prozesse beendet.')
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+
+
+def perform(action, data):
+    actions = {'refresh', 'light_on', 'light_off', 'ui_helix', 'ui_klipperscreen',
+               'restart_gui', 'restart_mcu1', 'restart_mcu2', 'reboot', 'stock_boot',
+               'tunnel_network', 'tunnel_usb'}
+    if action not in actions:
+        raise ValueError('Unbekannte Aktion')
+    dangerous = action in {'restart_mcu1', 'restart_mcu2', 'reboot', 'stock_boot',
+                          'tunnel_network', 'tunnel_usb'}
+    if dangerous:
+        state = printer_state()
+        if state['print_state'] in ('printing', 'paused'):
+            raise ValueError('Bei laufendem oder pausiertem Druck gesperrt.')
+        if state['print_state'] == 'unknown' and data.get('unknown_ack') is not True:
+            raise ValueError('Druckstatus unbekannt. Bitte ausdruecklich bestaetigen.')
+        expected = ('ANYCUBIC' if action == 'stock_boot' else
+                    'TUNNEL' if action.startswith('tunnel_') else 'NEUSTART')
+        if data.get('confirmation') != expected:
+            raise ValueError('Bestaetigung fehlt: ' + expected)
+    if action.startswith('tunnel_'):
+        target = action.removeprefix('tunnel_')
+        if data.get('pi_ack') is not True:
+            raise ValueError('Pi-Konfiguration und gestoppten Klipper ausdruecklich bestaetigen.')
+        options = tunnel_options()
+        if not options['usb_installed']:
+            raise ValueError('Der Transport-Umschalter ist noch nicht installiert.')
+        if target == 'usb' and not options['usb_ready']:
+            raise ValueError(options['usb_message'])
+        if target == 'network' and not options['network_ready']:
+            raise ValueError('Aktive LAN- oder WLAN-Verbindung mit IPv4-Adresse erforderlich.')
+        current = read('/etc/s1-tunnel-mode', 'network')
+        if target == current:
+            raise ValueError('Diese Tunnelvariante ist bereits ausgewaehlt.')
+        path = Path('/etc/s1-tunnel-mode')
+        pending = path.with_suffix('.web-new')
+        pending.write_text(target + '\n')
+        pending.chmod(0o644)
+        os.replace(pending, path)
+        os.sync()
+        def restart_for_transport():
+            time.sleep(2)
+            subprocess.run(['/sbin/reboot'], timeout=30)
+        threading.Thread(target=restart_for_transport, daemon=True).start()
+        print('Web tunnel selection:', target, flush=True)
+        return 'Tunnelvariante gespeichert. S1 startet neu; Pi-Konfiguration bleibt unveraendert.'
+    if action == 'refresh':
+        return 'Status wird automatisch aktualisiert.'
+    if action.startswith('light_'):
+        # Only change the existing light output; never export/reconfigure a GPIO here.
+        gpio = Path('/sys/class/gpio/gpio117')
+        if read(gpio / 'direction') != 'out':
+            raise ValueError('Bauraumlicht-Ausgang ist nicht initialisiert.')
+        (gpio / 'value').write_text('1' if action == 'light_on' else '0')
+    elif action in ('ui_helix', 'ui_klipperscreen', 'restart_gui'):
+        if not Path('/usr/local/sbin/s1-ui-select').is_file():
+            raise ValueError('Der lokale Display-Umschalter ist nicht installiert.')
+        target = action[3:] if action.startswith('ui_') else read('/etc/s1-ui', 'helix')
+        command(['/usr/local/sbin/s1-ui-select', target], timeout=10)
+    elif action.startswith('restart_mcu'):
+        restart_tunnel(action.removeprefix('restart_'))
+    elif action in ('reboot', 'stock_boot'):
+        executable = '/sbin/reboot' if action == 'reboot' else '/usr/local/sbin/s1-return-to-stock'
+        if not Path(executable).is_file():
+            raise ValueError('Boot-Helfer nicht vorhanden')
+        if action == 'stock_boot':
+            # Confirm slot selection/sync succeeded before reporting success.
+            command([executable, '--prepare'], timeout=30)
+        def delayed():
+            time.sleep(5 if action == 'stock_boot' else 2)
+            subprocess.run(['/sbin/poweroff' if action == 'stock_boot' else executable], timeout=30)
+        threading.Thread(target=delayed, daemon=True).start()
+        if action == 'stock_boot':
+            return 'Anycubic vorbereitet. Der Drucker wird heruntergefahren. Mindestens 15 Sekunden warten, dann am Netzschalter ausschalten, zehn Sekunden warten und wieder einschalten.'
+    print('Web action:', action, flush=True)
+    return 'Aktion ausgefuehrt.' if action not in ('reboot', 'stock_boot') else 'Neustart wird gestartet.'
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = 'Kobrian'
+    timeout = 10
+
+    def log_message(self, *_):
+        pass  # No credentials, session tokens or polling spam in the access log.
+
+    def reply(self, code, value, content_type='application/json; charset=utf-8', cookie=None):
+        data = value if isinstance(value, bytes) else json.dumps(value, ensure_ascii=False).encode()
+        self.send_response(code)
+        self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(data)))
+        self.send_header('Cache-Control', 'no-store')
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('X-Frame-Options', 'DENY')
+        self.send_header('Referrer-Policy', 'no-referrer')
+        self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
+        if cookie:
+            self.send_header('Set-Cookie', cookie)
+        self.end_headers()
+        self.wfile.write(data)
+
+    def session(self):
+        try:
+            cookie = SimpleCookie(self.headers.get('Cookie', ''))
+            token = cookie['kobrian'].value
+        except (KeyError, ValueError):
+            return None
+        with AUTH_LOCK:
+            session = SESSIONS.get(token)
+            return session if session and session['expires'] > time.time() else None
+
+    def do_GET(self):
+        route = urlsplit(self.path)
+        if route.path == '/':
+            return self.reply(200, PAGE, 'text/html; charset=utf-8')
+        if route.path == '/api/setup':
+            required = needs_setup()
+            return self.reply(200, {'required': required, 'token': SETUP_TOKEN if required else None})
+        session = self.session()
+        if not session:
+            return self.reply(401, {'error': 'Bitte anmelden.'})
+        if route.path == '/api/session':
+            return self.reply(200, {'csrf': session['csrf']})
+        if route.path == '/api/status':
+            with CACHE_LOCK:
+                return self.reply(200, CACHE)
+        if route.path == '/api/log':
+            name = parse_qs(route.query).get('name', [''])[0]
+            if name not in LOGS:
+                return self.reply(404, {'error': 'Unbekanntes Log'})
+            return self.reply(200, safe_tail(name).encode(), 'text/plain; charset=utf-8')
+        self.reply(404, {'error': 'Nicht gefunden'})
+
+    def do_POST(self):
+        origin = self.headers.get('Origin')
+        if origin and urlsplit(origin).netloc != self.headers.get('Host'):
+            return self.reply(403, {'error': 'Fremde Herkunft abgelehnt'})
+        try:
+            length = int(self.headers.get('Content-Length', '0'))
+            if not 0 < length <= 8192:
+                raise ValueError()
+            data = json.loads(self.rfile.read(length))
+            if not isinstance(data, dict):
+                raise ValueError()
+        except (ValueError, UnicodeError):
+            return self.reply(400, {'error': 'Ungueltige Anfrage'})
+        if self.path == '/api/setup':
+            with ACCOUNT_LOCK:
+                if not needs_setup():
+                    return self.reply(409, {'error': 'Ersteinrichtung ist bereits abgeschlossen.'})
+                if not hmac.compare_digest(self.headers.get('X-CSRF-Token', ''), SETUP_TOKEN):
+                    return self.reply(403, {'error': 'Einrichtungsseite bitte neu laden.'})
+                try:
+                    credentials = new_credentials(data)
+                    save_credentials(credentials)
+                except ValueError as error:
+                    return self.reply(400, {'error': str(error)})
+            return self.reply(200, {'ok': True})
+        if self.path == '/api/login':
+            if needs_setup():
+                return self.reply(409, {'error': 'Bitte zuerst deinen Webzugang einrichten.'})
+            peer = self.client_address[0]
+            now = time.time()
+            with AUTH_LOCK:
+                for key in list(ATTEMPTS):
+                    if not any(now - t < 60 for t in ATTEMPTS[key]):
+                        del ATTEMPTS[key]
+                attempts = ATTEMPTS.setdefault(peer, [])
+                attempts[:] = [t for t in attempts if now - t < 60]
+                if len(attempts) >= 5 or len(ATTEMPTS) > 256:
+                    return self.reply(429, {'error': 'Bitte eine Minute warten.'})
+                attempts.append(now)
+            password = data.get('password', '')
+            if not isinstance(password, str):
+                return self.reply(400, {'error': 'Ungueltiges Passwort'})
+            digest = hashlib.pbkdf2_hmac('sha256', password.encode(),
+                                        bytes.fromhex(CONFIG['salt']), CONFIG['iterations']).hex()
+            if not (hmac.compare_digest(str(data.get('username', '')).encode(), CONFIG['username'].encode())
+                    and hmac.compare_digest(digest, CONFIG['password_hash'])):
+                return self.reply(401, {'error': 'Anmeldung fehlgeschlagen'})
+            token = secrets.token_urlsafe(32)
+            session = {'csrf': secrets.token_urlsafe(24), 'expires': now + 8 * 3600}
+            with AUTH_LOCK:
+                if not hmac.compare_digest(digest, CONFIG['password_hash']):
+                    return self.reply(401, {'error': 'Zugang wurde geaendert. Bitte erneut anmelden.'})
+                for key in list(SESSIONS):
+                    if SESSIONS[key]['expires'] < now:
+                        del SESSIONS[key]
+                if len(SESSIONS) >= 64:
+                    del SESSIONS[next(iter(SESSIONS))]
+                SESSIONS[token] = session
+            return self.reply(200, {'csrf': session['csrf']},
+                              cookie='kobrian=' + token + '; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800')
+        session = self.session()
+        if not session:
+            return self.reply(401, {'error': 'Bitte anmelden.'})
+        if not hmac.compare_digest(self.headers.get('X-CSRF-Token', ''), session['csrf']):
+            return self.reply(403, {'error': 'Sitzung bitte neu laden.'})
+        if self.path == '/api/account':
+            with ACCOUNT_LOCK:
+                current = data.get('current_password', '')
+                if not isinstance(current, str):
+                    return self.reply(400, {'error': 'Aktuelles Passwort erforderlich.'})
+                digest = hashlib.pbkdf2_hmac('sha256', current.encode(),
+                                           bytes.fromhex(CONFIG['salt']), CONFIG['iterations']).hex()
+                if not hmac.compare_digest(digest, CONFIG['password_hash']):
+                    return self.reply(403, {'error': 'Aktuelles Passwort ist falsch.'})
+                try:
+                    save_credentials(new_credentials(data))
+                except ValueError as error:
+                    return self.reply(400, {'error': str(error)})
+            return self.reply(200, {'ok': True},
+                              cookie='kobrian=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0')
+        if self.path == '/api/logout':
+            cookie = SimpleCookie(self.headers.get('Cookie', ''))
+            with AUTH_LOCK:
+                SESSIONS.pop(cookie['kobrian'].value, None)
+            return self.reply(200, {'ok': True}, cookie='kobrian=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0')
+        if self.path != '/api/action':
+            return self.reply(404, {'error': 'Nicht gefunden'})
+        if not ACTION_LOCK.acquire(blocking=False):
+            return self.reply(409, {'error': 'Eine Aktion laeuft bereits.'})
+        try:
+            message = perform(data.get('action', ''), data)
+            self.reply(200, {'ok': True, 'message': message})
+        except ValueError as error:
+            self.reply(409, {'error': str(error)})
+        except Exception as error:
+            print('Web action error:', type(error).__name__, flush=True)
+            self.reply(500, {'error': 'Aktion fehlgeschlagen. Web-Log pruefen.'})
+        finally:
+            ACTION_LOCK.release()
+
+
+class Server(ThreadingHTTPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+    slots = threading.BoundedSemaphore(12)
+
+    def process_request(self, request, address):
+        if not self.slots.acquire(blocking=False):
+            self.shutdown_request(request)
+            return
+        super().process_request(request, address)
+
+    def process_request_thread(self, request, address):
+        try:
+            super().process_request_thread(request, address)
+        finally:
+            self.slots.release()
+
+
+if __name__ == '__main__':
+    threading.Thread(target=sampler, daemon=True).start()
+    print('Kobrian Web listening on port', CONFIG.get('port', 8080), flush=True)
+    Server(('0.0.0.0', int(CONFIG.get('port', 8080))), Handler).serve_forever()

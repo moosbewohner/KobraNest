@@ -1,0 +1,8 @@
+{
+  "printer_ip": "192.168.1.67",
+  "pi_ip": "192.168.1.151",
+  "gateway": "192.168.1.1",
+  "prefix": 24,
+  "light_auto_on": true,
+  "tunnel_mode": "usb"
+}

@@ -1,0 +1,143 @@
+#!/usr/bin/python3
+"""One bounded recovery attempt after both selected MCU bridges are ready."""
+import fcntl
+import json
+from pathlib import Path
+import socket
+import time
+import urllib.request
+
+LOG = Path('/var/log/s1-klipper-autorecover.log')
+DONE = Path('/run/s1/klipper-autorecover.done')
+
+
+def log(message):
+    with LOG.open('a') as stream:
+        stream.write(time.strftime('%Y-%m-%d %H:%M:%S ') + message + '\n')
+
+
+def tunnel_listeners_ready(table):
+    # Klipper shutdown closes the client connections. Requiring ESTABLISHED
+    # would deadlock recovery: the listening bridges are the prerequisite.
+    ports = set()
+    for line in table.splitlines()[1:]:
+        fields = line.split()
+        if len(fields) > 3 and fields[3] == '0A':
+            ports.add(int(fields[1].split(':')[1], 16))
+    return {7003, 7005}.issubset(ports)
+
+
+def transport_ready(mode, root=Path('/')):
+    if mode == 'network':
+        return tunnel_listeners_ready((root/'proc/net/tcp').read_text())
+    if mode != 'usb':
+        return False
+    for channel, uart, interface in (('mcu1','/dev/ttyS3','00'),('mcu2','/dev/ttyS5','02')):
+        try:
+            pid=(root/('run/s1/'+channel+'-usb.pid')).read_text().strip()
+            if not pid.isdecimal():return False
+            args=(root/('proc/'+pid+'/cmdline')).read_bytes().split(b'\0')
+            if not args or Path(args[0].decode()).name!='socat':return False
+            if not any(arg.startswith(('OPEN:'+uart+',').encode()) for arg in args):return False
+            devices=[arg.decode().split(',',1)[0][5:] for arg in args if arg.startswith(b'OPEN:/dev/ttyACM')]
+            if len(devices)!=1:return False
+            tty=root/('sys/class/tty/'+Path(devices[0]).name+'/device')
+            device=tty.resolve()
+            parents=(device,*device.parents)
+            iface=next((p for p in parents if (p/'bInterfaceNumber').is_file()),None)
+            usb=next((p for p in parents if (p/'idVendor').is_file()),None)
+            if iface is None or usb is None:return False
+            if (iface/'bInterfaceNumber').read_text().strip()!=interface:return False
+            if (usb/'idVendor').read_text().strip().lower()!='1d6b' or (usb/'idProduct').read_text().strip().lower()!='0104':return False
+        except (OSError,ValueError,UnicodeError):return False
+    return True
+
+
+def decision(info, print_state):
+    if print_state in ('printing', 'paused'):
+        return 'busy'
+    if info.get('state') == 'ready':
+        return 'ready'
+    message = str(info.get('state_message', '')).lower()
+    connection_error = any(text in message for text in
+                           ('unable to connect', 'lost communication', 'connection closed'))
+    if info.get('state') in ('error', 'shutdown') and connection_error:
+        return 'recover'
+    return 'wait'
+
+
+def main():
+    Path('/run/s1').mkdir(parents=True, exist_ok=True)
+    with open('/run/s1/klipper-autorecover.lock', 'w') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        if DONE.exists():
+            return
+        mode = Path('/etc/s1-tunnel-mode').read_text().strip() if Path('/etc/s1-tunnel-mode').exists() else 'network'
+        config_path = Path('/etc/s1-web.json')
+        if not config_path.exists():
+            config_path = Path('/etc/s1-settings.json')
+        config = json.loads(config_path.read_text())
+        ip = config['pi_ip']
+        socket.inet_aton(ip)
+        base = 'http://' + ip + ':7125'
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+        def request(path, post=False):
+            req = urllib.request.Request(base + path, data=b'' if post else None)
+            with opener.open(req, timeout=5) as response:
+                result = json.load(response)
+            if 'result' not in result:
+                raise ValueError('Moonraker returned no result')
+            return result['result']
+
+        log('Waiting up to 180 seconds for both '+mode+' bridges and Moonraker; five-second stabilization before recovery.')
+        deadline = time.monotonic() + 180
+        stable = None
+        while time.monotonic() < deadline:
+            try:
+                if not transport_ready(mode):
+                    stable = None
+                    time.sleep(2)
+                    continue
+                info = request('/printer/info')
+                print_state = None
+                try:
+                    print_state = request('/printer/objects/query?print_stats')['status']['print_stats']['state']
+                except (OSError, ValueError, KeyError):
+                    pass  # Klipper objects are unavailable after a connection shutdown.
+                action = decision(info, print_state)
+                if action in ('ready', 'busy'):
+                    DONE.write_text(action + '\n')
+                    log('No restart: ' + action)
+                    return
+                if action == 'recover':
+                    if stable is None:
+                        stable = time.monotonic()
+                    elif time.monotonic() - stable >= 5:
+                        # Re-read immediately before acting. No repeated POST after a timeout.
+                        latest = request('/printer/info')
+                        if decision(latest, print_state) == 'recover':
+                            DONE.write_text('firmware_restart attempted\n')
+                            log('Connection error with both selected bridges ready: sending FIRMWARE_RESTART once.')
+                            request('/printer/firmware_restart', post=True)
+                            log('Moonraker accepted FIRMWARE_RESTART.')
+                            return
+                else:
+                    stable = None
+            except (OSError, ValueError, KeyError) as error:
+                if DONE.exists():
+                    log('Restart response unavailable; no retry: ' + str(error))
+                    return
+                stable = None
+            time.sleep(2)
+        log('Timed out; no restart sent.')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, KeyError) as error:
+        log('Recovery stopped: ' + str(error))

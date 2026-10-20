@@ -1,0 +1,57 @@
+#!/bin/sh
+exec >>/var/log/s1-boot.log 2>&1
+set -x
+set -eu
+BB=/bin/busybox
+. /etc/s1-network.conf
+is_mounted() { $BB awk -v target="$1" '$2==target {found=1} END {exit !found}' /proc/mounts; }
+is_mounted /dev || $BB mount -t devtmpfs devtmpfs /dev
+is_mounted /proc || $BB mount -t proc proc /proc
+is_mounted /sys || $BB mount -t sysfs sysfs /sys
+$BB mkdir -p /run /tmp /dev/pts /dev/shm /var/log /useremain
+$BB mount -t tmpfs -o mode=0755,size=8m tmpfs /run
+$BB mount -t tmpfs -o mode=1777,size=32m tmpfs /tmp
+$BB mount -t tmpfs -o mode=1777,size=16m tmpfs /dev/shm
+$BB mount -t devpts -o mode=0620,gid=5 devpts /dev/pts
+$BB mkdir -p /run/dbus /run/s1 /run/lock /dev/block/by-name
+echo 5 > /run/s1/splash.progress
+/usr/local/sbin/s1-splash >>/var/log/s1-splash.log 2>&1 &
+echo $! > /run/s1/splash.pid
+$BB ln -sf /dev/mmcblk0p5 /dev/block/by-name/misc
+$BB hostname kobra-s1
+$BB ip link set lo up
+# Herstellerinitialisierung aus /userdata/app/kenv/run.sh: externer USB-Port.
+[ -d /sys/class/gpio/gpio41 ] || echo 41 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio41/direction
+echo 1 > /sys/class/gpio/gpio41/value
+# Speicherpolitik des Herstellerstarts fuer die grafische Laufzeit beibehalten.
+echo 1 > /proc/sys/vm/overcommit_memory
+# USB-LAN aus der Live-Diagnose. Kein DHCP-Prozess startet parallel.
+count=0
+while [ ! -d /sys/class/net/eth1 ] && [ "$count" -lt 30 ]; do
+    $BB sleep 1; count=$((count+1))
+done
+$BB ip addr add $PRINTER_IP/$PREFIX dev eth1
+$BB ip link set eth1 up
+$BB ip route add default via $GATEWAY
+echo 30 > /run/s1/splash.progress
+/usr/local/sbin/s1-time-sync >>/var/log/s1-time-sync.log 2>&1 &
+$BB mount -t ext4 /dev/mmcblk0p17 /useremain
+# Derselbe Resetablauf wie im bereitgestellten, funktionierenden app.sh.
+[ -d /sys/class/gpio/gpio116 ] || echo 116 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio116/direction
+echo 0 > /sys/class/gpio/gpio116/value
+$BB sleep 1
+echo 1 > /sys/class/gpio/gpio116/value
+/usr/bin/dbus-uuidgen --ensure
+/usr/bin/dbus-daemon --system --fork --nopidfile
+$BB mkdir -p /etc/dropbear
+if [ ! -s /etc/dropbear/dropbear_ed25519_host_key ]; then
+    /usr/bin/dropbearkey -t ed25519 -f /etc/dropbear/dropbear_ed25519_host_key
+fi
+echo 45 > /run/s1/splash.progress
+/usr/local/sbin/s1-jingle >>/var/log/s1-jingle.log 2>&1 &
+
+[ -s /etc/dropbear/dropbear_ecdsa_host_key ] || /usr/bin/dropbearkey -t ecdsa -s 256 -f /etc/dropbear/dropbear_ecdsa_host_key
+[ -s /etc/ssh/s1_avnc_ecdsa_key ] || /usr/bin/dropbearconvert dropbear openssh /etc/dropbear/dropbear_ecdsa_host_key /etc/ssh/s1_avnc_ecdsa_key
+chmod 600 /etc/ssh/s1_avnc_ecdsa_key

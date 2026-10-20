@@ -1,0 +1,11 @@
+::sysinit:/usr/local/sbin/s1-boot
+::respawn:/usr/local/sbin/s1-service mcu1
+::respawn:/usr/local/sbin/s1-service mcu2
+::respawn:/usr/local/sbin/s1-service gui
+::respawn:/usr/local/sbin/s1-service ssh
+::respawn:/usr/local/sbin/s1-service ssh-avnc
+::respawn:/usr/local/sbin/s1-service light
+::once:/usr/local/sbin/s1-health
+::once:/usr/local/sbin/s1-klipper-autorecover
+::shutdown:/bin/busybox sync
+::shutdown:/bin/busybox umount -a -r

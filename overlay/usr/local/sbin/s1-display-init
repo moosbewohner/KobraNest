@@ -1,0 +1,15 @@
+#!/usr/bin/python3
+import fcntl
+import os
+import struct
+
+# Aktuellen fbdev-Modus erneut aktivieren, damit DRM den Bootlogo-Puffer abloest.
+fd = os.open('/dev/fb0', os.O_RDWR)
+try:
+    mode = bytearray(160)
+    fcntl.ioctl(fd, 0x4600, mode)  # FBIOGET_VSCREENINFO
+    struct.pack_into('I', mode, 84, 128)  # FB_ACTIVATE_FORCE, gleiche Aufloesung
+    fcntl.ioctl(fd, 0x4601, mode)  # FBIOPUT_VSCREENINFO
+finally:
+    os.close(fd)
+print('Normaler Display-Bildpuffer aktiviert', flush=True)
