@@ -36,7 +36,7 @@ LOGS = {
     'helix': '/var/log/HelixScreen.log', 'klipperscreen': '/var/log/KlipperScreen.log',
     'mcu1': '/var/log/mcu1.log', 'mcu2': '/var/log/mcu2.log',
     'network': '/var/log/s1-network.log', 'boot': '/var/log/s1-boot.log',
-    'health': '/var/log/s1-boot-health.log',
+    'health': '/var/log/s1-boot-health.log', 'camera':'/var/log/s1-camera.log',
 }
 
 
@@ -178,6 +178,38 @@ def network_interfaces():
             for item in entries if item['ifname'] != 'lo']
 
 
+def camera_status():
+    defaults={'enabled':False,'resolution':'1280x720','fps':15,'slowdown':True}
+    try:
+        config=json.loads(read('/etc/s1-camera.json','{}'))
+        defaults.update({key:config[key] for key in defaults if key in config})
+    except (ValueError,TypeError):pass
+    status={'settings':defaults,'installed':Path('/usr/bin/ustreamer').is_file() and Path('/usr/local/sbin/s1-camera').is_file(),
+            'running':running('/run/s1/camera-stream.pid'),'online':False,'actual_fps':0}
+    if status['running']:
+        try:
+            with OPENER.open('http://127.0.0.1:8081/state',timeout=1) as response:
+                source=json.load(response)['result']['source']
+            status.update(online=source['online'],actual_fps=source.get('captured_fps',0))
+        except (OSError,ValueError,KeyError):pass
+    return status
+
+
+def save_camera(data):
+    settings=data.get('settings')
+    if not isinstance(settings,dict):raise ValueError('Ungueltige Kameraeinstellungen.')
+    enabled=settings.get('enabled');slowdown=settings.get('slowdown');fps=settings.get('fps');resolution=settings.get('resolution')
+    if (type(enabled) is not bool or type(slowdown) is not bool or type(fps) is not int
+            or not 1<=fps<=30 or resolution not in ('640x480','960x720','1280x720')):
+        raise ValueError('Ungueltige Kameraeinstellungen.')
+    if enabled and not (Path('/usr/bin/ustreamer').is_file() and Path('/usr/local/sbin/s1-camera').is_file()):
+        raise ValueError('Kamera-Unterstuetzung ist nicht installiert.')
+    path=Path('/etc/s1-camera.json');pending=path.with_suffix('.web-new')
+    pending.write_text(json.dumps({'enabled':enabled,'resolution':resolution,'fps':fps,'slowdown':slowdown})+'\n')
+    pending.chmod(0o600);os.replace(pending,path);os.sync()
+    return 'Kameraeinstellungen gespeichert. Werden innerhalb weniger Sekunden angewendet.'
+
+
 def collect():
     memory = {}
     for line in read('/proc/meminfo').splitlines():
@@ -197,7 +229,7 @@ def collect():
             'ui_control_available': Path('/usr/local/sbin/s1-ui-select').is_file(),
             'ui_next': read('/etc/s1-ui', ui), 'tunnel_mode': read('/etc/s1-tunnel-mode', 'network'),
             'tunnel_options': tunnel_options(),
-            'ports': tcp_status(), 'pi_ip': PI, 'printer': printer_state(),
+            'ports': tcp_status(), 'pi_ip': PI, 'printer': printer_state(), 'camera':camera_status(),
             'light': read('/sys/class/gpio/gpio117/value', 'unknown'),
             'stock_available': Path('/usr/local/sbin/s1-return-to-stock').is_file(),
             'helix_available': Path('/opt/helixscreen/bin/helix-screen-fbdev').is_file(),
@@ -254,7 +286,7 @@ def restart_tunnel(channel):
 def perform(action, data):
     actions = {'refresh', 'light_on', 'light_off', 'ui_helix', 'ui_klipperscreen',
                'restart_gui', 'restart_mcu1', 'restart_mcu2', 'reboot', 'stock_boot',
-               'tunnel_network', 'tunnel_usb'}
+               'tunnel_network', 'tunnel_usb', 'camera_save'}
     if action not in actions:
         raise ValueError('Unbekannte Aktion')
     dangerous = action in {'restart_mcu1', 'restart_mcu2', 'reboot', 'stock_boot',
@@ -295,6 +327,8 @@ def perform(action, data):
         threading.Thread(target=restart_for_transport, daemon=True).start()
         print('Web tunnel selection:', target, flush=True)
         return 'Tunnelvariante gespeichert. S1 startet neu; Pi-Konfiguration bleibt unveraendert.'
+    if action == 'camera_save':
+        return save_camera(data)
     if action == 'refresh':
         return 'Status wird automatisch aktualisiert.'
     if action.startswith('light_'):

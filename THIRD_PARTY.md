@@ -11,3 +11,5 @@ GPL-3.0-only applies to original KobraNest code, not to third-party components o
 - Manufacturer boot/system partitions, Wi-Fi modules and Rockchip utilities are obtained from the user's own device; manufacturer partition backups must never be uploaded to this repository.
 
 The current binary package is not a complete corresponding-source collection for every Debian package and statically linked dependency. Before public binary distribution, complete the applicable source redistribution/provision requirements. This source repository is prepared separately from the binary release candidate for that reason.
+
+- uStreamer: GPL-3.0, https://github.com/pikvm/ustreamer; installed from Debian repositories during runtime preparation. Debian provides copyright notices and the source package.

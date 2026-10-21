@@ -72,3 +72,13 @@ Die Texte stehen in translations.json und werden mit python3 build-translations.
 Die Webaktion waehlt Original-Slot A synchron aus und synchronisiert die Daten. Erst bei Erfolg wird nach fuenf Sekunden ein geordnetes poweroff ausgefuehrt, kein reboot. Die WebUI zeigt dauerhaft: mindestens 15 Sekunden warten, am Netzschalter ausschalten, zehn Sekunden warten und wieder einschalten. Die Rueckkehr-App fuer Stock nach Kobrian bleibt unveraendert. Die Aktion wurde bei dieser Aktualisierung nicht auf dem Drucker ausgeloest. Auswahl-/Shutdown-Reihenfolge und Fehlersperren wurden mit Platzhaltern geprueft.
 
 s1-return-to-stock --prepare waehlt nur Slot A und synchronisiert. Ohne Argument wird anschliessend poweroff angefordert. Alte Aufrufer duerfen keinen automatischen Neustart mehr erwarten.
+
+## Integrierte Kamera / Integrated camera
+
+Die WebUI bietet Kamera Ein/Aus, 640x480 / 960x720 / 1280x720, 1–30 FPS sowie eine reduzierte Bildrate ohne Zuschauer. Werte werden sofort und dauerhaft in /etc/s1-camera.json gespeichert. Ausschalten beendet den Aufnahmeprozess; der kleine Verwaltungsprozess wartet weiter. Neuinstallationen starten mit deaktivierter Kamera, damit eine am Pi betriebene Kamera nicht ungewollt aktiviert wird. Vorhandene Einstellungen bleiben erhalten. Die Einstellungen veraendern keine Kamera-Konfiguration am Pi.
+
+Der Installer installiert Debians ustreamer. /usr/local/sbin/s1-camera waehlt die integrierte UVC-Kamera 13d3:784b anhand ihrer USB-Kennung und ignoriert Metadaten- und Fremdkameraknoten. MJPEG wird direkt aus der Kamera weitergereicht (HW encoder), ohne Software-Neukodierung. Der Stream ist im lokalen Netz auf Port 8081 verfuegbar: /stream, /snapshot und /state. Eine erreichbare Bildrate ist nicht garantiert; Belichtung, USB und Hardware begrenzen sie. Log: /var/log/s1-camera.log.
+
+The web dashboard provides camera on/off, resolution, 1–30 FPS and reduced capture rate without viewers. Settings persist in /etc/s1-camera.json and apply without a printer reboot. Disabling stops the capture process. Fresh installations default to disabled; existing settings are preserved. Pi webcam settings are never modified. Debian ustreamer forwards the integrated camera's MJPEG frames without software re-encoding. Local network stream: http://PRINTER-IP:8081/stream; snapshot: /snapshot. Requested frame rate is a target, not a guarantee.
+
+Upstream: https://github.com/pikvm/ustreamer (GPL-3.0, installed from Debian repositories).

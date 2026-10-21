@@ -428,7 +428,7 @@ class Assistant:
         web = PACKAGE / 'optional/kobrian-web'
         self.row('Zusatzmodule', 'info', 'WebUI und Rinkhals-Rückkehr-App werden vorbereitet.')
         installer.run(c, 'test -r /useremain/rinkhals/.current/tools.sh && mkdir -p ' + root + '/opt/kobrian-web-installer')
-        for name in ('s1-web', 'index.html', 'install.py', 's1-return-to-stock'):
+        for name in ('s1-web', 'index.html', 'install.py', 's1-return-to-stock', 's1-camera'):
             installer.put(c, root + '/opt/kobrian-web-installer/' + name, web / name)
         installer.run(c, 'chroot ' + root + ' /usr/bin/python3 /opt/kobrian-web-installer/install.py --root / --pi-ip ' + settings['pi_ip'])
         appdir = '/useremain/home/rinkhals/apps/kobrian-start'

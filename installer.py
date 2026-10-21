@@ -324,7 +324,7 @@ def stage_wifi(c,s):
     run(c,'mkdir -p '+directory+'/firmware/rtl_nic')
     for name in ('rtl_nic/rtl8153b-2.fw','LICENCE.rtlwifi_firmware.txt'):
         put(c,directory+'/firmware/'+name,PACKAGE/'optional/wlan-dualbetrieb/firmware'/name,0o644)
-    ready=run(c,'chroot '+ROOT+' /bin/sh -c '+shlex.quote('test -x /usr/sbin/wpa_supplicant && test -x /usr/sbin/ip && test -s /lib/firmware/regulatory.db && echo ready || echo missing')).strip()
+    ready=run(c,'chroot '+ROOT+' /bin/sh -c '+shlex.quote('test -x /usr/bin/ustreamer && test -x /usr/sbin/wpa_supplicant && test -x /usr/sbin/ip && test -s /lib/firmware/regulatory.db && echo ready || echo missing')).strip()
     if ready!='ready':
         print('Installing WLAN dependencies from Debian repositories; Internet access required.')
         run(c,'python3 '+directory+'/run-inactive-packages.py',timeout=2200,progress=True)

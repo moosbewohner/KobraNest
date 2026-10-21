@@ -1,5 +1,10 @@
 # Changelog
 
+## Camera controls
+
+- Persistent camera on/off, resolution, frame rate and idle slowdown in the DE/EN web dashboard.
+- Integrated UVC selection and hardware MJPEG passthrough; disabled on fresh installs.
+
 ## 0.1 — initial preview
 
 - KobraNest branding, retaining compatible internal Kobrian paths.

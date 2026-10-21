@@ -1,0 +1,71 @@
+#!/usr/bin/python3
+"""Manage the integrated camera; disabled means no capture process or USB use."""
+import json
+import os
+from pathlib import Path
+import signal
+import subprocess
+import time
+
+CONFIG=Path('/etc/s1-camera.json')
+RUN=Path('/run/s1');RUN.mkdir(parents=True,exist_ok=True)
+PID=RUN/'camera.pid';CHILD=RUN/'camera-stream.pid'
+PID.write_text(str(os.getpid()))
+stop=False
+child=None
+current=None
+
+def stopping(*_):
+    global stop
+    stop=True
+for sig in (signal.SIGTERM,signal.SIGINT):signal.signal(sig,stopping)
+
+def finish():
+    global child
+    if child is not None and child.poll() is None:
+        child.terminate()
+        try:child.wait(timeout=5)
+        except subprocess.TimeoutExpired:child.kill();child.wait()
+    child=None
+    CHILD.unlink(missing_ok=True)
+
+def device():
+    for node in sorted(Path('/sys/class/video4linux').glob('video*')):
+        try:
+            if (node/'index').read_text().strip()!='0':continue
+            for parent in (node.resolve(),*node.resolve().parents):
+                if (parent/'idVendor').exists() and (parent/'idProduct').exists():
+                    if ((parent/'idVendor').read_text().strip(),(parent/'idProduct').read_text().strip())==('13d3','784b'):
+                        return '/dev/'+node.name
+                    break
+        except OSError:pass
+    return None
+
+try:
+    os.nice(10)
+    while not stop:
+        try:
+            config=json.loads(CONFIG.read_text()) if CONFIG.exists() else {'enabled':False}
+            assert type(config.get('enabled')) is bool
+            assert config.get('resolution','1280x720') in ('640x480','960x720','1280x720')
+            assert type(config.get('fps',15)) is int and 1<=config.get('fps',15)<=30
+            assert type(config.get('slowdown',True)) is bool
+        except (OSError,ValueError,AssertionError):
+            config={'enabled':False}
+        if config!=current:
+            finish();current=config
+            print('Camera settings:',config,flush=True)
+        if child is not None and child.poll() is not None:finish()
+        if config['enabled'] and child is None and Path('/usr/bin/ustreamer').is_file():
+            node=device()
+            if node:
+                args=['/usr/bin/ustreamer','--device',node,'--format','MJPEG',
+                      '--encoder','HW','--resolution',config.get('resolution','1280x720'),
+                      '--desired-fps',str(config.get('fps',15)),'--buffers','2',
+                      '--workers','1','--host','0.0.0.0','--port','8081','--no-log-colors']
+                if config.get('slowdown',True):args.append('--slowdown')
+                child=subprocess.Popen(args)
+                CHILD.write_text(str(child.pid))
+        time.sleep(2)
+finally:
+    finish();PID.unlink(missing_ok=True)

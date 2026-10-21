@@ -33,8 +33,8 @@ try:
     command(['dpkg','--configure','-a'],300)
     options=['-o','Acquire::Retries=3','-o','Acquire::http::Timeout=30','-o','Acquire::https::Timeout=30','-o','Dpkg::Use-Pty=0']
     command(['apt-get',*options,'update'],600)
-    command(['apt-get',*options,'install','-y','--no-install-recommends','wpasupplicant','iproute2','wireless-regdb'],1200)
-    for package in ('wpasupplicant','iproute2','wireless-regdb'):
+    command(['apt-get',*options,'install','-y','--no-install-recommends','wpasupplicant','iproute2','wireless-regdb','ustreamer'],1200)
+    for package in ('wpasupplicant','iproute2','wireless-regdb','ustreamer'):
         assert subprocess.check_output(['dpkg-query','-W','-f=${Status}',package]).decode().strip()=='install ok installed',package+' incomplete'
     assert not subprocess.check_output(['dpkg','--audit']).strip(),'Package configuration incomplete'
 finally:
