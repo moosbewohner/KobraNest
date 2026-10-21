@@ -221,6 +221,12 @@ class Assistant:
                     self.row(label, 'fail', 'SSH-Schlüssel hat sich geändert. Verbindung gesperrt; Schlüssel zuerst unabhängig prüfen.')
                 except paramiko.AuthenticationException:
                     self.row(label, 'fail', 'SSH-Anmeldung fehlgeschlagen. Benutzername und Passwort prüfen.')
+                except RuntimeError as exc:
+                    # Only expose fixed, known check failures, never remote commands or credentials.
+                    reasons={
+                        'System A is not the verified version; installation refused':'System A hat keine freigegebene Firmware-Pruefsumme. Installation gesperrt.',
+                        'Kernel A is not the verified version; installation refused':'Kernel A hat keine freigegebene Firmware-Pruefsumme. Installation gesperrt.'}
+                    self.row(label, 'fail', reasons.get(str(exc),'Voraussetzungspruefung fehlgeschlagen. Verbindung und Firmware pruefen.'))
                 except Exception as exc:
                     # Never echo supplied credentials, commands, or authentication responses.
                     self.row(label, 'fail', 'Prüfung fehlgeschlagen (' + type(exc).__name__ + '). Verbindung und Voraussetzungen prüfen.')

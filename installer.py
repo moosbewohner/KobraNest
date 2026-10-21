@@ -20,6 +20,8 @@ BASE='/useremain/s1-klipperscreen-test'
 ROOT=BASE+'/rootfs'
 KNOWN_BOOT='352ee437ecb6c4b8c7c5f4de1b36a89e345cd511e6a3bc065ab5c556c3a59241'
 KNOWN_SYSTEM='e104cc77d3c9d8b5ed5ff63ec55cda6433d09071db1a62f759435e48bc88de01'
+# Verified reset variant: identical SquashFS bytes [0:5660094], changed partition tail only.
+KNOWN_SYSTEM_HASHES={KNOWN_SYSTEM,'dc6b2a43642bb7f7221a43aa0aa5d14ad7b781b55c88aebaf2e84a6bae1471d2'}
 PARTS={1:32768,5:262144,6:16777216,7:16777216,8:50331648,9:50331648}
 
 def require(ok,message):
@@ -188,7 +190,7 @@ def inspect(c,require_a=True):
         require(sectors*512==size,f'Partition p{number} has unexpected size')
     require('rootfstype=squashfs' in cmdline,'Unexpected root filesystem')
     require(run(c,'sha256sum /dev/mmcblk0p6').split()[0]==KNOWN_BOOT,'Kernel A is not the verified version; installation refused')
-    require(run(c,'sha256sum /dev/mmcblk0p8').split()[0]==KNOWN_SYSTEM,'System A is not the verified version; installation refused')
+    require(run(c,'sha256sum /dev/mmcblk0p8').split()[0] in KNOWN_SYSTEM_HASHES,'System A is not the verified version; installation refused')
     run(c,'test -b /dev/mmcblk0p17 && test -x /usr/bin/rk_ota') if require_a else None
     mounts=run(c,'cat /proc/mounts')
     if require_a:
@@ -427,7 +429,7 @@ def activate(args,s,work):
         size=(work/'bootstrap.img').stat().st_size
         require(run(c,f'head -c {size} /dev/mmcblk0p9 | sha256sum').split()[0]==m['files']['bootstrap.img'],'System B readback mismatch: stay in A and restore from backup')
         require(run(c,'sha256sum /dev/mmcblk0p6').split()[0]==KNOWN_BOOT,'Unexpected A kernel change')
-        require(run(c,'sha256sum /dev/mmcblk0p8').split()[0]==KNOWN_SYSTEM,'Unexpected A system change')
+        require(run(c,'sha256sum /dev/mmcblk0p8').split()[0] in KNOWN_SYSTEM_HASHES,'Unexpected A system change')
         run(c,'/usr/bin/rk_ota --misc=other --mode=retry && sync')
         print('B activated and verified. Rebooting. New Debian SSH host keys will differ.')
         c.exec_command('/bin/busybox reboot')
