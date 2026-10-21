@@ -3,7 +3,7 @@
 ## Camera controls
 
 - Persistent camera on/off, resolution, frame rate and idle slowdown in the DE/EN web dashboard.
-- Integrated UVC selection and hardware MJPEG passthrough; disabled on fresh installs.
+- Integrated UVC selection and hardware MJPEG passthrough; enabled when connected by default, with persistent manual off.
 
 ## 0.1 — initial preview
 

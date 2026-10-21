@@ -179,7 +179,7 @@ def network_interfaces():
 
 
 def camera_status():
-    defaults={'enabled':False,'resolution':'1280x720','fps':15,'slowdown':True}
+    defaults={'enabled':True,'resolution':'1280x720','fps':15,'slowdown':True}
     try:
         config=json.loads(read('/etc/s1-camera.json','{}'))
         defaults.update({key:config[key] for key in defaults if key in config})

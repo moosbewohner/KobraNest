@@ -45,7 +45,7 @@ try:
     os.nice(10)
     while not stop:
         try:
-            config=json.loads(CONFIG.read_text()) if CONFIG.exists() else {'enabled':False}
+            config=json.loads(CONFIG.read_text()) if CONFIG.exists() else {'enabled':True}
             assert type(config.get('enabled')) is bool
             assert config.get('resolution','1280x720') in ('640x480','960x720','1280x720')
             assert type(config.get('fps',15)) is int and 1<=config.get('fps',15)<=30
