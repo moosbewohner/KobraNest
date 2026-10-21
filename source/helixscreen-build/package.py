@@ -5,7 +5,7 @@ assert subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=
 archives=list((source/'releases').glob('helixscreen-pi32-fbdev-*.tar.gz'))
 assert len(archives)==1,archives
 out=base/'helixscreen-kobranest-armhf.tar.gz'
-provenance={'upstream':'https://github.com/Kobra-S1/helixscreen','branch':'kobrian','commit':'67ecd2597f63d29b727a74d679ffcb3dbc848fd3','version':(source/'VERSION.txt').read_text().strip(),'target':'pi32-fbdev','toolchain':'Debian trixie arm64 -> armhf, GCC14','adaptation':'Framebuffer compatibility symlink; no upstream C++ changes'}
+provenance={'upstream':'https://github.com/Kobra-S1/helixscreen','branch':'kobrian','commit':'67ecd2597f63d29b727a74d679ffcb3dbc848fd3','version':(source/'VERSION.txt').read_text().strip(),'target':'pi32-fbdev','toolchain':'Debian trixie crossbuild-essential-armhf, GCC14','adaptation':'Framebuffer compatibility symlink; no upstream C++ changes'}
 with tarfile.open(archives[0],'r:gz') as src,tarfile.open(out,'w:gz',compresslevel=1) as dst:
  for item in src:
   dst.addfile(item,src.extractfile(item) if item.isfile() else None)
