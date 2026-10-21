@@ -20,7 +20,7 @@
 
 ## 0.1 — initial preview
 
-- KobraNest branding, retaining compatible internal Kobrian paths.
+- KobraNest branding, retaining compatible internal paths.
 - Tested first installation on one Anycubic Kobra S1 reference device.
 - DE/EN assistant with warning acknowledgement, YES confirmations and session-only SSH credential reuse.
 - Optional public SSH key and optional Pi chamber-light configuration transfer.

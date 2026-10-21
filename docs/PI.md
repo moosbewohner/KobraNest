@@ -2,13 +2,13 @@
 
 Der Installationsassistent wählt standardmäßig USB. Auf dem Pi 4 muss das passende USB-Gadget bereits eingerichtet sein; siehe optional/usb-otg/README.md. Haupt-MCU: /dev/ttyGS0, zweite MCU: /dev/ttyGS1. Klipper-Benutzer braucht dialout-Zugriff. Die Netzwerkdienste mcu1/mcu2 und etwaige automatische Starts in Klippers ExecStartPre müssen für USB deaktiviert sein. Vor Änderungen sichern und nur im Leerlauf arbeiten. Einen vorhandenen funktionierenden Gadget-Aufbau erhalten.
 
-Im Assistenten kann vor der Sicherung alternativ „Netzwerk über WLAN oder LAN“ ausgewählt werden. Nur für diese Variante die nachfolgend beschriebenen socat-Netzwerkdienste einrichten. Das Erzeugen von pi-config installiert oder aktiviert sie nicht automatisch.
+Im Assistenten kann vor der Sicherung alternativ die Netzwerk-Tunnelvariante ausgewählt werden. Die MCU-Verbindung läuft dann ausschließlich über kabelgebundenes LAN, ohne WLAN-Fallback. Nur für diese Variante die nachfolgend beschriebenen socat-Netzwerkdienste einrichten. Das Erzeugen von pi-config installiert oder aktiviert sie nicht automatisch.
 
 WLAN ist unabhängig von der gewählten MCU-Variante für HelixScreen, WebGUI und SSH erforderlich, sofern kein LAN verwendet wird.
 
 ## Netzwerkadresse bei WLAN
 
-Für die übliche WLAN-Installation die bestehende Anycubic-WLAN-IP für dieselbe WLAN-MAC im Router reservieren. Dieselbe Adresse wird nach der Übernahme in Kobrian für die Pi-Tunnel und Moonraker-Lichtkonfiguration verwendet. LAN ist optional; beide Netzwerkvarianten verwenden dieselben Ports 7003/7005. Der Pi muss diese IP erreichen können; WLAN-Client-Isolation darf den Zugriff nicht verhindern.
+Für die Verwaltung über WLAN die bestehende Anycubic-WLAN-IP im Router für die WLAN-MAC reservieren. Display, WebGUI, SSH und Bauraumlicht dürfen diese Adresse verwenden. Für MCU-Netzwerk-Tunnel ist dagegen ein LAN-Adapter mit eigener LAN-IP erforderlich: Der Pi verbindet sich ausschließlich mit der LAN-IP auf Port 7003/7005. Die Listener sind an eth1 gebunden und weichen bei fehlendem Kabel nicht auf WLAN aus. LAN- und WLAN-Adresse müssen verschieden sein.
 
 # Raspberry Pi vorbereiten
 

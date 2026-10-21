@@ -14,11 +14,11 @@ Anleitungen und projektspezifische Informationen:
 
 Die verlinkten Anleitungen und ihre Kompatibilitätshinweise vorab lesen. KobraNest installiert diese Projekte oder Rinkhals nicht automatisch und flasht keine MCU-Firmware.
 
-# Kobrian-Assistent: Sicherung, Vorbereitung und Aktivierung
+# KobraNest-Assistent: Sicherung, Vorbereitung und Aktivierung
 
-Windows x64: Das gesamte Paket entpacken und **Kobrian-Assistent.exe** oeffnen.
+Windows x64: Das gesamte Paket entpacken und **Start-KobraNest.cmd** oeffnen.
 Python ist im Ordner _internal enthalten; diesen neben der EXE lassen.
-Alternativ Start-Kobrian.cmd oder mit eigener Python-Umgebung:
+Alternativ mit eigener Python-Umgebung:
 `python -m pip install -r requirements.txt`, danach `python assistant.py`.
 Der Standardbrowser oeffnet eine lokale Sitzung auf 127.0.0.1, ohne Cloud.
 DE / EN oben schaltet die Sprache um. Die Sprachwahl wird lokal gespeichert;
@@ -37,7 +37,7 @@ Englische Kurzanleitung: ASSISTANT-EN.md. Original-Diagnoselogs behalten ihre Sp
    auf dem Pi; er schreibt keine Druckerpartitionen.
 4. **YES**: Debian in das neue Datenverzeichnis uebertragen.
    HelixScreen, KlipperScreen, WebUI mit Ersteinrichtung und die deaktivierte Rinkhals-App
-   Kobrian starten vorbereiten. Kein Bootwechsel und keine Bootpartitions-
+   KobraNest starten vorbereiten. Kein Bootwechsel und keine Bootpartitions-
    Schreibvorgaenge. HelixScreen ist Standard; KlipperScreen bleibt ueber die WebUI waehlbar.
 5. Den Pi anhand docs/PI.md einrichten bzw. dessen vorhandene Konfiguration
    pruefen. Passende Dienstdateien und die Lichtkonfiguration stehen nach
@@ -61,8 +61,8 @@ Assistent startet keine Installation von selbst nach einer Geraetepruefung.
 
 ## Bestehende Installation und Wiederaufnahme
 
-Ein bereits auf Kobrian laufender Drucker wird nicht neu installiert. Auch im
-Originalsystem wird ein vorhandenes Kobrian-Datenverzeichnis nicht blind
+Ein bereits auf KobraNest laufender Drucker wird nicht neu installiert. Auch im
+Originalsystem wird ein vorhandenes KobraNest-Datenverzeichnis nicht blind
 ersetzt. Der Assistent ist fuer eine Neuinstallation auf genau dem im CLI
 hinterlegten Firmwarestand vorgesehen; andere Firmware wird abgelehnt.
 
@@ -127,3 +127,7 @@ Ist nur die Uploadphase unterbrochen, Geräte erneut prüfen und denselben Schri
 Der Herstellerstart kann den nicht definierten Rest des 512-Byte-Sektors hinter den 32 Byte A/B-Metadaten in misc verändern. Nur Bytes 2080 bis 2559 werden für diesen Vergleich ausgeblendet. Größe, A/B-Signatur, Version und CRC müssen gültig sein; alle A/B-Metadaten und alle anderen misc-Bytes müssen unverändert bleiben. Die ursprüngliche PC-Sicherung bleibt unverändert. Vor Aktivierung werden frische Gerätesicherungen gegen die unmittelbar zuvor gelesenen vollständigen Partitionshashes geprüft. Andere Änderungen bleiben gesperrt.
 
 Current assistant: acknowledge the warning once, reuse passwords for this browser session, and confirm each write step with YES. Optional public SSH keys and Pi light transfer are offered during staging. Reloading the page clears in-memory passwords.
+
+## Technische Altbezeichnungen
+
+Die sichtbare Bezeichnung ist KobraNest. Der enthaltene ausführbare Dateiname `Kobrian-Assistent.exe`, interne Pfade wie `%LOCALAPPDATA%/Kobrian/Assistant/`, Dienst-/Ordnernamen mit `kobrian` und das Rinkhals-Bestätigungswort `KOBRIAN` bleiben technisch unverändert. Zum normalen Start immer `Start-KobraNest.cmd` verwenden; Pfade und Befehle aus der Anleitung nicht eigenständig umbenennen.

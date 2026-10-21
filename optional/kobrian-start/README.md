@@ -1,6 +1,6 @@
-# Rinkhals-App: Kobrian starten
+# Rinkhals-App: KobraNest starten
 
-Einmaliger Rueckweg vom originalen Anycubic/Rinkhals-System zu der bereits installierten Kobrian-Installation auf Slot B. Grundlage fuer Metadaten, Eigenschaften und Start/Stop/Status ist die bereitgestellte lan-tunneled-klipper-App und das tatsaechlich installierte Rinkhals-Framework.
+Einmaliger Rueckweg vom originalen Anycubic/Rinkhals-System zu der bereits installierten KobraNest-Installation auf Slot B. Grundlage fuer Metadaten, Eigenschaften und Start/Stop/Status ist die bereitgestellte lan-tunneled-klipper-App und das tatsaechlich installierte Rinkhals-Framework.
 
 ## Installation
 
@@ -9,7 +9,7 @@ Den vollstaendigen Ordner **kobrian-start** nach **/useremain/home/rinkhals/apps
 ## Bedienung auf dem Stock-Display
 
 1. **Sicherstellen, dass kein Druck laeuft**, auch kein pausierter Druck. Der Starter kann den proprietaeren Stock-Druckstatus nicht verlaesslich automatisch ermitteln.
-2. Im Rinkhals-App-Menue **Kobrian starten** oeffnen.
+2. Im Rinkhals-App-Menue **KobraNest starten** oeffnen.
 3. In den Eigenschaften **boot_confirmation** auf **KOBRIAN** und **idle_confirmed** auf **True** setzen und speichern.
 4. **Start app** waehlen. Nach etwa acht Sekunden wird Slot B gewaehlt und der S1 neu gestartet. Innerhalb der Wartezeit kann **Stop app** abbrechen.
 
@@ -21,11 +21,11 @@ Die bestaetigenden Eigenschaften werden vorab sowohl dauerhaft als auch temporae
 
 - Original-Slot A (`root=/dev/mmcblk0p8`) vor jeder wirksamen Umschaltung.
 - Kobra S1 (KS1), nicht pauschal andere Anycubic-Modelle.
-- Vorhandene Kobrian-Kennung, Debian-Laufzeit, Bootskript und korrigierte lokale Startpruefung.
+- Vorhandene KobraNest-Kennung, Debian-Laufzeit, Bootskript und korrigierte lokale Startpruefung.
 - Erwartete Groessen von boot_b und system_b.
 - Einmalige Freigabe fuer den getrennten Neustartauftrag.
 
-Es werden keine Kernel-, Rootfs- oder MCU-Images geflasht und keine Netzwerk-/Tunnel-Einstellungen geaendert. Nur der A/B-Bootdatensatz wird mit dem vorhandenen Herstellerwerkzeug umgestellt. Ein alter Fehlstartmarker wird vorher nach **/useremain/s1-klipperscreen-test/return-history/** gesichert und entfernt; dort wird auch der vorherige misc-Inhalt gesichert. Ein tatsaechlich fehlerhafter lokaler Kobrian-Start kann weiterhin auf Stock zurueckfallen.
+Es werden keine Kernel-, Rootfs- oder MCU-Images geflasht und keine Netzwerk-/Tunnel-Einstellungen geaendert. Nur der A/B-Bootdatensatz wird mit dem vorhandenen Herstellerwerkzeug umgestellt. Ein alter Fehlstartmarker wird vorher nach **/useremain/s1-klipperscreen-test/return-history/** gesichert und entfernt; dort wird auch der vorherige misc-Inhalt gesichert. Ein tatsaechlich fehlerhafter lokaler KobraNest-Start kann weiterhin auf Stock zurueckfallen.
 
 Das Vorhandensein der Installation ist keine vollstaendige Integritaets- oder Dateisystempruefung. Die separat empfohlene Offline-Dateisystempruefung wird nicht durch diese App ersetzt.
 
@@ -34,11 +34,11 @@ Das Vorhandensein der Installation ist keine vollstaendige Integritaets- oder Da
 - `./app.sh check`: nur Installations-/Layoutpruefung, keine Umschaltung.
 - `./app.sh status`: Rinkhals-Status des laufenden Neustartauftrags.
 - Log: **/tmp/kobrian-start/app.log** (auf dem Stock-System).
-- Nach erfolgreichem Start von Kobrian: **/var/log/s1-boot-health.log** und fehlender boot-attempt-Marker bestaetigen den lokalen Start.
+- Nach erfolgreichem Start von KobraNest: **/var/log/s1-boot-health.log** und fehlender boot-attempt-Marker bestaetigen den lokalen Start.
 
 ## Pruefstand
 
-Auf dem Referenzdrucker wird die App nur deaktiviert installiert. Syntax, Metadaten, die reine Installationspruefung und die Verweigerung eines Starts aus dem bereits laufenden Kobrian werden geprueft. Dabei wird kein Slot gewechselt und kein Neustart ausgeloest. Sichtbarkeit und tatsaechliche Rueckkehr aus dem Stock-Menue sind anschliessend noch praktisch abzunehmen.
+Auf dem Referenzdrucker wird die App nur deaktiviert installiert. Syntax, Metadaten, die reine Installationspruefung und die Verweigerung eines Starts aus dem bereits laufenden KobraNest werden geprueft. Dabei wird kein Slot gewechselt und kein Neustart ausgeloest. Sichtbarkeit und tatsaechliche Rueckkehr aus dem Stock-Menue sind anschliessend noch praktisch abzunehmen.
 
 ## Korrektur 0.1.1
 

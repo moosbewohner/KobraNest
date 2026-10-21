@@ -6,7 +6,7 @@
 - Rueckfall nach fehlgeschlagenem Debian-Start durch naechsten Einschaltvorgang.
 - Lokales KlipperScreen mit Bild und Touch.
 - Netzwerk-UART-Tunnel zu beiden MCUs; Klipper/Moonraker auf dem Pi erreichbar.
-- Kobrian-Bootlogo, Ladebalken, anschliessender Wechsel zu KlipperScreen.
+- KobraNest-Bootlogo, Ladebalken, anschliessender Wechsel zu KlipperScreen.
 - GPIO117-Licht: EIN/AUS/EIN elektrisch ausgelesen, Licht und Schalter vom Benutzer bestaetigt.
 - AVNC 3.3.1 auf Android 7 ueber SSH2222 zu VNC127.0.0.1:5911 vom Benutzer bestaetigt.
 - SSH-PC-Schluesselanmeldung auf Port 22; persoenlicher Schluessel nicht im Paket.

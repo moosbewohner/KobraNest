@@ -2,9 +2,9 @@
 
 **Dein Drucker. Dein System. / Your printer. Your system.**
 
-Lokales Debian 13 für den **Anycubic Kobra S1**, mit HelixScreen, KlipperScreen als Alternative und einer eigenen Wartungs-Weboberfläche. Klipper und Moonraker laufen auf einem externen Raspberry Pi. Bisheriger Projektname: Kobrian; technische Pfade bleiben aus Kompatibilitätsgründen erhalten.
+Lokales Debian 13 für den **Anycubic Kobra S1**, mit HelixScreen, KlipperScreen als Alternative und einer eigenen Wartungs-Weboberfläche. Klipper und Moonraker laufen auf einem externen Raspberry Pi. Technische Altbezeichnungen in internen Pfaden und Dateinamen bleiben aus Kompatibilitätsgründen erhalten.
 
-Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional KlipperScreen interface and a local maintenance dashboard. Klipper and Moonraker run on an external Raspberry Pi. Previously named Kobrian; existing technical paths are retained for compatibility.
+Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional KlipperScreen interface and a local maintenance dashboard. Klipper and Moonraker run on an external Raspberry Pi. Legacy names in internal paths and filenames are retained for compatibility.
 
 ![KobraNest](branding/KobraNest-800x480.png)
 
@@ -14,7 +14,7 @@ Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional Kli
 
 [Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.0) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.0/KobraNest-S1-v0.1.zip.sha256)
 
-ZIP vollständig entpacken, dann **Start-KobraNest.cmd** oder **Kobrian-Assistent.exe** starten. `_internal` muss daneben bleiben. / Extract the complete ZIP, then run **Start-KobraNest.cmd** or **Kobrian-Assistent.exe**. Keep `_internal` beside it.
+ZIP vollständig entpacken, dann **Start-KobraNest.cmd** starten. `_internal` muss daneben bleiben. / Extract the complete ZIP, then run **Start-KobraNest.cmd**. Keep `_internal` beside it.
 
 ## Erforderliche Vorarbeiten: Rinkhals und Klipper-Tunneling
 

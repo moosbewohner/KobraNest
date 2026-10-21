@@ -14,17 +14,17 @@ Anleitungen und projektspezifische Informationen:
 
 Die verlinkten Anleitungen und ihre Kompatibilitätshinweise vorab lesen. KobraNest installiert diese Projekte oder Rinkhals nicht automatisch und flasht keine MCU-Firmware.
 
-Neuer Projektname: KobraNest (bisher Kobrian). Bestehende technische Pfade und Dateinamen bleiben für die Kompatibilität erhalten.
+Die sichtbare Projektbezeichnung ist KobraNest. Technische Altbezeichnungen in Pfaden, Dateinamen und dem Bestätigungswort bleiben aus Kompatibilitätsgründen erhalten.
 
-# Kobrian S1 – Installation und Bedienung
+# KobraNest S1 – Installation und Bedienung
 
 Stand: 20. Oktober 2026 · Version 0.1
 
-## 1. Was Kobrian macht
+## 1. Was KobraNest macht
 
-Kobrian läuft als Debian-System auf dem Drucker. HelixScreen startet automatisch; KlipperScreen bleibt als Alternative installiert. Klipper und Moonraker laufen auf einem separaten Raspberry Pi. Die beiden Drucker-MCUs werden standardmäßig über USB OTG Serial mit dem Pi verbunden. Netzwerk-Tunnel über WLAN oder LAN bleiben als Alternative auswählbar. WLAN ist der übliche Zugang für Display, WebGUI und SSH.
+KobraNest läuft als Debian-System auf dem Drucker. HelixScreen startet automatisch; KlipperScreen bleibt als Alternative installiert. Klipper und Moonraker laufen auf einem separaten Raspberry Pi. Die beiden Drucker-MCUs werden standardmäßig über USB OTG Serial mit dem Pi verbunden. Ein Netzwerk-Tunnel über kabelgebundenes LAN bleibt als Alternative auswählbar; es gibt keinen WLAN-Fallback für MCU-Verbindungen. WLAN ist der übliche Zugang für Display, WebGUI und SSH.
 
-Enthalten sind Bootlogo mit Ladebalken, Startmelodie, Bauraumlicht, SSH, lokale WebGUI und WLAN für den üblichen Netzwerkzugang. Die Oberfläche gibt es auf Deutsch und Englisch. Original-Slot A bleibt bei der Installation erhalten; Kobrian verwendet Slot B und Dateien auf der Datenpartition.
+Enthalten sind Bootlogo mit Ladebalken, Startmelodie, Bauraumlicht, SSH, lokale WebGUI und WLAN für den üblichen Netzwerkzugang. Die Oberfläche gibt es auf Deutsch und Englisch. Original-Slot A bleibt bei der Installation erhalten; KobraNest verwendet Slot B und Dateien auf der Datenpartition.
 
 ## 2. Voraussetzungen und Grenzen
 
@@ -41,11 +41,11 @@ Das Projekt ist am Referenzdrucker erprobt, aber keine breit auf unterschiedlich
 
 ## 3. Paket auf dem PC öffnen
 
-Das gesamte `Kobrian-S1-v0.1.zip` entpacken. Alle Dateien und Unterordner zusammenlassen. Nicht direkt aus der ZIP starten.
+Das gesamte `KobraNest-S1-v0.1.zip` entpacken. Alle Dateien und Unterordner zusammenlassen. Nicht direkt aus der ZIP starten.
 
 ### Windows
 
-`Kobrian-Assistent.exe` im entpackten Ordner öffnen. `_internal` muss neben der EXE bleiben. Python muss nicht separat installiert werden. Alternativ `Start-Kobrian.cmd` verwenden.
+`Start-KobraNest.cmd` im entpackten Ordner öffnen. Alle Dateien einschließlich `_internal` zusammenlassen. Python muss nicht separat installiert werden.
 
 ### Linux, Beispiel Debian/Ubuntu
 
@@ -80,11 +80,11 @@ Docker wird auf dem Pi benötigt, nicht auf dem Linux-PC.
 5. Geräteprüfung starten. Neue SSH-Fingerabdrücke mit einem unabhängig bekannten Zugang vergleichen, bevor sie bestätigt werden. Originalsystem und Debian können an derselben Drucker-IP verschiedene Hostschlüssel besitzen.
 6. Alle Fehler klären, bevor die Installation fortgesetzt wird. Die reine Geräteprüfung startet keine Dienste neu und wechselt keinen Bootslot.
 
-Der Assistent erkennt automatisch, ob die eingegebene Adresse zu wlan0 oder eth1 gehört. Diese Verbindung wird für Kobrian vorbereitet. Bei WLAN werden die gespeicherten Netze ausschließlich geräteintern übernommen und HelixScreen mit eingeschaltetem WLAN eingerichtet. Die WLAN-IP bleibt DHCP-basiert: vor der Installation eine DHCP-Reservierung für dieselbe WLAN-MAC und Adresse im Router einrichten. Bei einer geänderten IP muss auch die Pi-Konfiguration angepasst werden; die neue Adresse kann am Display abgelesen werden.
+Der Assistent erkennt automatisch, ob die eingegebene Adresse zu wlan0 oder eth1 gehört. Diese Verbindung wird für KobraNest vorbereitet. Bei WLAN werden die gespeicherten Netze ausschließlich geräteintern übernommen und HelixScreen mit eingeschaltetem WLAN eingerichtet. Die WLAN-IP bleibt DHCP-basiert: vor der Installation eine DHCP-Reservierung für dieselbe WLAN-MAC und Adresse im Router einrichten. Bei einer geänderten IP muss auch die Pi-Konfiguration angepasst werden; die neue Adresse kann am Display abgelesen werden.
 
 Beispiel des Referenzaufbaus: Drucker-LAN `192.168.1.67`, Pi `192.168.1.151`, Gateway `192.168.10.1`, Präfix `24`. Diese Adressen nicht ungeprüft auf fremde Netze übertragen. Die verwendete Druckeradresse muss frei und dauerhaft reserviert sein. Im WLAN-Fall gilt die Reservierung für die WLAN-MAC, nicht für einen LAN-Adapter.
 
-Wenn bereits Kobrian auf Slot B läuft oder das Zielverzeichnis einer früheren Installation existiert, keine Neuinstallation erzwingen. Erst vorhandene Installation und Sicherungen prüfen.
+Wenn bereits KobraNest auf Slot B läuft oder das Zielverzeichnis einer früheren Installation existiert, keine Neuinstallation erzwingen. Erst vorhandene Installation und Sicherungen prüfen.
 
 ## 5. Installation mit dem Assistenten
 
@@ -114,7 +114,7 @@ Standard USB: Der Pi muss bereits das passende USB-Gadget bereitstellen. Beide M
 
 Die erzeugten Dateien liegen im Geräte-Arbeitsordner unter `pi-config`. Die genaue Einrichtung steht in [PI.md](PI.md).
 
-Für Netzwerk-Tunnel über WLAN oder LAN:
+Für Netzwerk-Tunnel über kabelgebundenes LAN:
 
 - `socat` auf dem Pi installieren.
 - Die erzeugten `mcu1.service` und `mcu2.service` prüfen, vorhandene Versionen sichern und passend installieren.
@@ -166,7 +166,7 @@ Normalerweise einmal eine Variante wählen und beibehalten. Der Web-Umschalter v
 
 | Variante | Druckerseite | Serial-Pfade am Pi |
 | --- | --- | --- |
-| Netzwerk (WLAN oder LAN) | socat auf Ports 7003 und 7005 | `/dev/ttyMCU1`, `/dev/ttyMCU2` |
+| Netzwerk (nur LAN) | socat auf Ports 7003 und 7005 | `/dev/ttyMCU1`, `/dev/ttyMCU2` |
 | USB OTG Serial | USB-ACM zu den beiden MCU-UARTs | `/dev/ttyGS0`, `/dev/ttyGS1` |
 
 ### USB erstmals vorbereiten
@@ -188,7 +188,7 @@ Der Pi braucht das passende DWC2-Overlay und ein Composite-Gadget mit drei ACM-F
 
 1. Klipper am Pi stoppen.
 2. Die ursprünglichen MCU-Pfade `/dev/ttyMCU1` und `/dev/ttyMCU2` wiederherstellen; die gesicherte LAN-Dienstkonfiguration passend zurücksetzen. Nur den eigenen USB-Drop-in entfernen, keine fremden Anpassungen löschen.
-3. In der WebGUI Netzwerk (WLAN oder LAN) auswählen und bestätigen. Dafür muss WLAN oder LAN mit der konfigurierten Druckeradresse aktiv sein. Der Drucker startet neu.
+3. In der WebGUI die Netzwerk-Tunnelvariante auswählen und bestätigen. Der LAN-Adapter muss mit eigener LAN-IP und eingestecktem Netzwerkkabel aktiv sein. Der Pi verwendet diese LAN-IP, nicht die WLAN-Verwaltungsadresse. Der Drucker startet neu.
 4. Auf dem Pi `mcu1` und `mcu2` aktivieren und starten, anschließend Klipper starten. `ready` und Temperaturen prüfen.
 
 USB ist auch im Installer Standard. Der mehrfache Wechsel wurde am Referenzaufbau vom Benutzer erfolgreich bestätigt. Das ist kein Nachweis für jede Kabel-, Hub- oder Pi-Variante. GPIO 116 nicht routinemäßig bei Verbindungsproblemen oder USB-Abbrüchen schalten.
@@ -198,12 +198,12 @@ USB ist auch im Installer Standard. Der mehrfache Wechsel wurde am Referenzaufba
 Nur ohne laufenden oder pausierten Druck:
 
 1. In der WebGUI „Wechsel zu Anycubic vorbereiten“ wählen und die Bestätigung befolgen.
-2. Kobrian wählt Slot A und fährt sauber herunter. Mindestens 15 Sekunden warten.
+2. KobraNest wählt Slot A und fährt sauber herunter. Mindestens 15 Sekunden warten.
 3. Drucker am Netzschalter ausschalten, zehn Sekunden warten, wieder einschalten.
 
-Kein bloßer warmer Neustart für diesen Wechsel. Die Kobrian-Dateien bleiben erhalten.
+Kein bloßer warmer Neustart für diesen Wechsel. Die KobraNest-Dateien bleiben erhalten.
 
-Zurück zu Kobrian: Im Originalsystem die Rinkhals-App **Kobrian starten** verwenden. Druckerleerlauf bestätigen und `KOBRIAN` eingeben. Die App startet einmalig Slot B. Sie ist nicht für automatischen Dauerstart gedacht.
+Zurück zu KobraNest: Im Originalsystem die Rinkhals-App **KobraNest starten** verwenden. Druckerleerlauf bestätigen und `KOBRIAN` eingeben. Die App startet einmalig Slot B. Sie ist nicht für automatischen Dauerstart gedacht.
 
 Bei Startproblemen siehe [RECOVERY.md](RECOVERY.md). Keine Boot- oder Datenpartition auf Verdacht formatieren oder fremde Partitionssicherungen zurückschreiben.
 
@@ -211,10 +211,10 @@ Bei Startproblemen siehe [RECOVERY.md](RECOVERY.md). Keine Boot- oder Datenparti
 
 | Meldung / Verhalten | Vorgehen |
 | --- | --- |
-| „Start in ORIGINAL slot A before installation“ | Neuinstallation nur aus Original-Slot A beginnen. Eine vorhandene Kobrian-Installation nicht überschreiben. |
+| „Start in ORIGINAL slot A before installation“ | Neuinstallation nur aus Original-Slot A beginnen. Eine vorhandene KobraNest-Installation nicht überschreiben. |
 | SSH-Schlüssel geändert | Prüfen, ob bewusst zwischen Stock und Debian gewechselt wurde; Schlüssel unabhängig vergleichen. Nicht pauschal alle bekannten Schlüssel löschen. |
 | Zielordner existiert | Vorhandene oder unvollständige Installation zuerst sichern und prüfen. Kein blindes Löschen von `/useremain`. |
-| „Startprüfung benötigt Kobrian auf Slot B“ | Der Drucker läuft noch im Originalsystem. Bootstatus und vorherige Aktivierung prüfen. |
+| „Startprüfung benötigt KobraNest auf Slot B“ | Der Drucker läuft noch im Originalsystem. Bootstatus und vorherige Aktivierung prüfen. |
 | USB-Gerät erkannt, aber Klipper nicht bereit | Beide Seiten müssen denselben Transport verwenden. Ein Firmware-Neustart installiert keine fehlende Brücke. |
 | WLAN ohne IP | Anmeldung und DHCP prüfen. Eine LAN-MAC-Reservierung gilt nicht automatisch für WLAN. |
 | WebGUI zeigt keine neuen Funktionen | Browserseite vollständig neu laden; Installation und Status prüfen. |
@@ -223,14 +223,14 @@ Bei Startproblemen siehe [RECOVERY.md](RECOVERY.md). Keine Boot- oder Datenparti
 
 Gerätesicherungen, SSH-Schlüssel und eigene Konfigurationen privat aufbewahren. Installationspaket und persönliche Sicherung getrennt halten. Vor Änderungen an Pi-Diensten und `printer.cfg` deren funktionsfähigen Stand sichern.
 
-Am Referenzgerät bestätigt: HelixScreen mit Touch, KlipperScreen als Alternative, WebGUI DE/EN, WLAN-Anmeldung nach Wiederherstellung, USB-Kommunikation beider MCUs und mehrfacher manueller Transportwechsel. Die neue WLAN-Erstinstallation mit Übernahme aus Stock ist auf Profilverarbeitung, DHCP-Logik und Installation in Testverzeichnissen geprüft. Der vollständige Wechsel von Stock-WLAN zu Kobrian-WLAN sowie ein Kaltstart dieser neuen Installationsfolge sind noch nicht praktisch geprüft.
+Am Referenzgerät bestätigt: HelixScreen mit Touch, KlipperScreen als Alternative, WebGUI DE/EN, WLAN-Anmeldung nach Wiederherstellung, USB-Kommunikation beider MCUs und mehrfacher manueller Transportwechsel. Die neue WLAN-Erstinstallation mit Übernahme aus Stock ist auf Profilverarbeitung, DHCP-Logik und Installation in Testverzeichnissen geprüft. Der vollständige Wechsel von Stock-WLAN zu KobraNest-WLAN sowie ein Kaltstart dieser neuen Installationsfolge sind noch nicht praktisch geprüft.
 
-RTL8153B: Die benötigte Realtek-Firmware wird mit Lizenz installiert. Da der Kernel den LAN-Adapter bereits vor dem Debian-Start erkennt, prüft Kobrian die vom Adapter gelesene Hardware-MAC und initialisiert bei Abweichung ausschließlich dessen Ethernet-Schnittstelle erneut. Keine feste MAC wird vergeben; EEPROM, USB-Hub und MCU-Gadget bleiben unverändert. Ein vollständiger Kaltstart sollte anschließend mit der Router-Reservierung geprüft werden.
+RTL8153B: Die benötigte Realtek-Firmware wird mit Lizenz installiert. Da der Kernel den LAN-Adapter bereits vor dem Debian-Start erkennt, prüft KobraNest die vom Adapter gelesene Hardware-MAC und initialisiert bei Abweichung ausschließlich dessen Ethernet-Schnittstelle erneut. Keine feste MAC wird vergeben; EEPROM, USB-Hub und MCU-Gadget bleiben unverändert. Ein vollständiger Kaltstart sollte anschließend mit der Router-Reservierung geprüft werden.
 
 ## Anmeldung und Bestätigungen im Assistenten
 
-Vor der Geräteprüfung muss der Warnhinweis zur Nutzung auf eigene Gefahr bestätigt werden. SSH-Passwörter werden einmal eingegeben und nur im Arbeitsspeicher der geöffneten Browserseite wiederverwendet. Schließen oder Neuladen der Seite entfernt diese Sitzungsdaten. Bei geänderten Zugangsdaten können die optionalen SSH-Passwortfelder in den Installationsschritten verwendet werden. Ein neues Debian-root-Passwort ist ebenfalls optional; leer bedeutet weiterhin rockchip. Nach erfolgreicher Aktivierung verwendet der Assistent dieses neue Passwort für Kobrian.
+Vor der Geräteprüfung muss der Warnhinweis zur Nutzung auf eigene Gefahr bestätigt werden. SSH-Passwörter werden einmal eingegeben und nur im Arbeitsspeicher der geöffneten Browserseite wiederverwendet. Schließen oder Neuladen der Seite entfernt diese Sitzungsdaten. Bei geänderten Zugangsdaten können die optionalen SSH-Passwortfelder in den Installationsschritten verwendet werden. Ein neues Debian-root-Passwort ist ebenfalls optional; leer bedeutet weiterhin rockchip. Nach erfolgreicher Aktivierung verwendet der Assistent dieses neue Passwort für KobraNest.
 
 Die drei schreibenden Schritte werden im Assistenten jeweils mit YES bestätigt. Stillstandsbestätigung und Pi-Bereitschaft bleiben erhalten. Die Kommandozeileninstallation behält ihre bisherigen Bestätigungswörter.
 
-Optional kann ein öffentlicher SSH-Schlüssel in das Feld eingefügt oder als .pub-Datei geladen werden. Er wird in Schritt 2 für root in Kobrian unter /root/.ssh/authorized_keys eingetragen. Private Schlüssel werden abgelehnt. Die Passwortanmeldung bleibt möglich. Bereits bestehende öffentliche Schlüssel bleiben erhalten.
+Optional kann ein öffentlicher SSH-Schlüssel in das Feld eingefügt oder als .pub-Datei geladen werden. Er wird in Schritt 2 für root in KobraNest unter /root/.ssh/authorized_keys eingetragen. Private Schlüssel werden abgelehnt. Die Passwortanmeldung bleibt möglich. Bereits bestehende öffentliche Schlüssel bleiben erhalten.

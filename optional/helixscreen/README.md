@@ -25,7 +25,7 @@ HelixScreen settings: /opt/helixscreen/config/settings.json.
 Reinstalling a known release preserves settings; an unknown existing HelixScreen
 directory is not overwritten. The original service script is backed up under
 /var/backups/kobrian-display. The optional install.py can target an inactive
-Debian root with --root, or use --root / --start on a running Kobrian system.
+Debian root with --root, or use --root / --start on a running KobraNest system.
 
 VNC mirrors KlipperScreen only; HelixScreen uses the framebuffer directly.
 Wi-Fi and USB OTG are separate options. This module installs no Pi macros,

@@ -14,7 +14,7 @@ Read the upstream setup and compatibility information first:
 
 KobraNest does not automatically install these projects or Rinkhals, and does not flash MCU firmware.
 
-Extract the complete package on Windows x64 and run **Kobrian-Assistent.exe**.
+Extract the complete package on Windows x64 and run **Start-KobraNest.cmd**.
 Keep the `_internal` folder beside the executable. Python is included.
 The assistant opens a local browser session, accessible only on this PC.
 Use **DE / EN** in the header to change language. Only the language preference
@@ -22,7 +22,7 @@ is saved in localStorage; SSH credentials are not stored there.
 
 1. Enter the printer and Pi IP addresses and SSH credentials. Verify unfamiliar
    SSH fingerprints independently before confirming them. Device checks only
-   read data. An existing Kobrian installation is not overwritten.
+   read data. An existing KobraNest installation is not overwritten.
 2. Open the installation steps and check the gateway and subnet prefix.
 3. Type **YES** to back up and verify the original partitions on this PC
    and build device-specific boot files on the Pi using existing Docker.
@@ -67,3 +67,7 @@ require explicit confirmation before password authentication. A changed known
 Pi key remains blocked.
 
 Current assistant: acknowledge the warning once, reuse passwords for this browser session, and confirm each write step with YES. Optional public SSH keys and Pi light transfer are offered during staging. Reloading the page clears in-memory passwords.
+
+## Legacy technical names
+
+The product name is KobraNest. The bundled executable `Kobrian-Assistent.exe`, internal paths such as `%LOCALAPPDATA%/Kobrian/Assistant/`, service/directory names containing `kobrian`, and the Rinkhals confirmation word `KOBRIAN` keep their existing technical names. Use `Start-KobraNest.cmd` to launch the assistant. Do not rename paths or commands from the instructions.

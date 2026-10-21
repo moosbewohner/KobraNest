@@ -39,7 +39,7 @@ Der Code nutzt LibVNCClient aus LibVNCServer. Zum Neubau sind ein passender ARMv
 - OpenSSH: https://www.openssh.com/
 - LibVNCServer/LibVNCClient: https://github.com/LibVNC/libvncserver
 - FIT/RSCE-Formatreferenz: https://github.com/rockchip-linux/u-boot/blob/next-dev/tools/rockchip/resource_tool.c
-- Bootgrafik: aus der vom Projektinhaber bereitgestellten Kobrian-Vorlage mit ImageGen als flache Grafik aufbereitet. Enthaltene Fremdmarken bleiben ihren jeweiligen Inhabern zugeordnet; keine Herstellerfreigabe wird behauptet.
+- Bootgrafik: aus der vom Projektinhaber bereitgestellten KobraNest-Vorlage mit ImageGen als flache Grafik aufbereitet. Enthaltene Fremdmarken bleiben ihren jeweiligen Inhabern zugeordnet; keine Herstellerfreigabe wird behauptet.
 
 Bestehende Fremdlizenzen werden durch dieses Paket nicht ersetzt. Die Debian-Binaerdistribution enthaelt viele Komponenten mit eigenen Lizenzen. Fuer eine oeffentliche Weiterverteilung deren Quellcode- und Lizenzpflichten beachten; Paket und Viewer-Quellcode sind keine vollstaendige Quellcode-Sammlung aller Debian-Abhaengigkeiten.
 

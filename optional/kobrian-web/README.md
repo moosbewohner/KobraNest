@@ -1,4 +1,4 @@
-# Kobrian Web – lokale Wartung auf dem S1
+# KobraNest Web – lokale Wartung auf dem S1
 
 Kleine, eigenstaendige Webseite auf dem Drucker, ohne Cloud, CDN oder zusaetzliche Python-Pakete. Sie bleibt ueber WLAN erreichbar, wenn LAN-Adapter, MCU-Tunnel oder Pi fehlen. Solange Debian bzw. das Netzwerk selbst nicht startet, ist auch diese Seite nicht erreichbar.
 
@@ -25,9 +25,9 @@ Webkonto und SSH-Konto sind getrennt. Es wird nur ein gesalzener PBKDF2-Hash in 
 
 MCU-Neustart, Druckerneustart und Anycubic-Boot werden bei erkanntem laufendem/pausiertem Druck gesperrt. Ist der Druckstatus unbekannt, muss dies ausdruecklich bestaetigt werden. Der Druckstatus wird vor diesen Aktionen erneut abgefragt. Zusaetzlich muss NEUSTART bzw. ANYCUBIC eingegeben werden.
 
-**Anycubic-Boot:** Danach ist die Kobrian-Weboberflaeche weg. Der Rueckweg erfolgt ueber die separat installierte Rinkhals-App "Kobrian starten" (Version 0.1.2, auf dem Referenzdrucker erfolgreich getestet): boot_confirmation=KOBRIAN und idle_confirmed=True speichern und Start app waehlen. Kein aktiver oder pausierter Druck. Der Knopf verwendet den vorhandenen Boot-Helfer; die Installation der Webseite selbst aendert keine Bootpartition und fuehrt keinen Bootwechsel aus.
+**Anycubic-Boot:** Danach ist die KobraNest-Weboberflaeche weg. Der Rueckweg erfolgt ueber die separat installierte Rinkhals-App "KobraNest starten" (Version 0.1.2, auf dem Referenzdrucker erfolgreich getestet): boot_confirmation=KOBRIAN und idle_confirmed=True speichern und Start app waehlen. Kein aktiver oder pausierter Druck. Der Knopf verwendet den vorhandenen Boot-Helfer; die Installation der Webseite selbst aendert keine Bootpartition und fuehrt keinen Bootwechsel aus.
 
-## Installation fuer das bestehende Kobrian-Debian
+## Installation fuer das bestehende KobraNest-Debian
 
 Den Ordner auf den Drucker kopieren, dann dort:
 
@@ -69,7 +69,7 @@ Die Texte stehen in translations.json und werden mit python3 build-translations.
 
 ## Wechsel zu Anycubic mit manuellem Kaltstart
 
-Die Webaktion waehlt Original-Slot A synchron aus und synchronisiert die Daten. Erst bei Erfolg wird nach fuenf Sekunden ein geordnetes poweroff ausgefuehrt, kein reboot. Die WebUI zeigt dauerhaft: mindestens 15 Sekunden warten, am Netzschalter ausschalten, zehn Sekunden warten und wieder einschalten. Die Rueckkehr-App fuer Stock nach Kobrian bleibt unveraendert. Die Aktion wurde bei dieser Aktualisierung nicht auf dem Drucker ausgeloest. Auswahl-/Shutdown-Reihenfolge und Fehlersperren wurden mit Platzhaltern geprueft.
+Die Webaktion waehlt Original-Slot A synchron aus und synchronisiert die Daten. Erst bei Erfolg wird nach fuenf Sekunden ein geordnetes poweroff ausgefuehrt, kein reboot. Die WebUI zeigt dauerhaft: mindestens 15 Sekunden warten, am Netzschalter ausschalten, zehn Sekunden warten und wieder einschalten. Die Rueckkehr-App fuer Stock nach KobraNest bleibt unveraendert. Die Aktion wurde bei dieser Aktualisierung nicht auf dem Drucker ausgeloest. Auswahl-/Shutdown-Reihenfolge und Fehlersperren wurden mit Platzhaltern geprueft.
 
 s1-return-to-stock --prepare waehlt nur Slot A und synchronisiert. Ohne Argument wird anschliessend poweroff angefordert. Alte Aufrufer duerfen keinen automatischen Neustart mehr erwarten.
 
