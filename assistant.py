@@ -165,9 +165,9 @@ class Assistant:
             status, detail = boot_summary(health)
             self.row('Lokale Startprüfung', status, detail)
             return
-        self.row('Firmwareprüfung', 'info', 'Originalsystem, Partitionslayout und Prüfsummen werden gelesen …')
+        self.row('Kompatibilitätsprüfung', 'info', 'Plattform, Originalsystem und Partitionslayout werden geprüft …')
         installer.inspect(c)
-        self.row('Modell & Firmware', 'ok', 'ARMv7, Original-Slot A und die geprüften Firmware-Hashes stimmen überein.')
+        self.row('Plattform & Voraussetzungen', 'ok', 'RV1106/ARMv7, Original-Slot A, Partitionslayout und Grundfunktionen passen.')
         available = int(run("df -Pk /useremain | tail -n 1 | awk '{print $4}'"))
         self.row('Druckerspeicher', 'ok' if available > 1600000 else 'fail', f'{available // 1024} MiB frei; benötigt: mehr als 1562 MiB.')
         existing = run('if test -e /useremain/s1-klipperscreen-test; then echo existing; else echo fresh; fi')

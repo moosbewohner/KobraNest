@@ -71,9 +71,9 @@ Use the complete **KobraNest-S1-v0.1.zip** installation package and extract it f
 
 ## Teststand / Test status
 
-Die Erstinstallation und der laufende Betrieb wurden auf **einem Referenz-S1** getestet. Kein allgemeiner Nachweis für andere Geräte oder Firmwarestände. Der Installer akzeptiert nur das dokumentierte Partitionslayout und die bekannten Firmware-Prüfsummen. Keine automatische Freigabe für S1 Max oder andere Drucker.
+Die Erstinstallation und der laufende Betrieb wurden auf **einem Referenz-S1** getestet. Kein allgemeiner Nachweis für andere Geräte oder Firmwarestände. Der Einstieg prüft die RV1106/ARMv7-Plattform, Linux 5.10, Slot A, das dokumentierte Partitionslayout, Image-Formate und benötigte Geräte; eine bytegenaue Firmware-Whitelist ist nicht erforderlich. Keine automatische Freigabe für S1 Max oder andere Drucker.
 
-Installation and operation have been tested on **one reference S1**. Other devices and firmware revisions are not validated. The installer checks the documented partition layout and firmware hashes. S1 Max and other printer models are not supported automatically.
+Installation and operation have been tested on **one reference S1**. Other devices and firmware revisions are not validated. The initial check validates the RV1106/ARMv7 platform, Linux 5.10, slot A, documented partition layout, image formats and required devices, without a byte-exact firmware whitelist. Backups, transfer integrity and flash readback remain checksum-verified. S1 Max and other printer models are not supported automatically.
 
 Bekannte offene Punkte: vollständige Kaltstartbestätigung der letzten Logo-/LAN-Änderungen; Signaturkompatibilität der WLAN-Länderdatenbank. Der zusätzliche zweite LAN-Adapter war ein temporärer Hardwaretest und wird nicht automatisch dauerhaft eingerichtet.
 

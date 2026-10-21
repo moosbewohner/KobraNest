@@ -18,10 +18,6 @@ import paramiko
 PACKAGE=Path(__file__).resolve().parent
 BASE='/useremain/s1-klipperscreen-test'
 ROOT=BASE+'/rootfs'
-KNOWN_BOOT='352ee437ecb6c4b8c7c5f4de1b36a89e345cd511e6a3bc065ab5c556c3a59241'
-KNOWN_SYSTEM='e104cc77d3c9d8b5ed5ff63ec55cda6433d09071db1a62f759435e48bc88de01'
-# Verified reset variant: identical SquashFS bytes [0:5660094], changed partition tail only.
-KNOWN_SYSTEM_HASHES={KNOWN_SYSTEM,'dc6b2a43642bb7f7221a43aa0aa5d14ad7b781b55c88aebaf2e84a6bae1471d2'}
 PARTS={1:32768,5:262144,6:16777216,7:16777216,8:50331648,9:50331648}
 
 def require(ok,message):
@@ -189,8 +185,16 @@ def inspect(c,require_a=True):
         sectors=int(run(c,f'cat /sys/class/block/mmcblk0p{number}/size').strip())
         require(sectors*512==size,f'Partition p{number} has unexpected size')
     require('rootfstype=squashfs' in cmdline,'Unexpected root filesystem')
-    require(run(c,'sha256sum /dev/mmcblk0p6').split()[0]==KNOWN_BOOT,'Kernel A is not the verified version; installation refused')
-    require(run(c,'sha256sum /dev/mmcblk0p8').split()[0] in KNOWN_SYSTEM_HASHES,'System A is not the verified version; installation refused')
+    # Capability checks, not a byte-for-byte firmware whitelist. Only read
+    # headers and platform metadata here; full backup hashes are checked later.
+    code="import json,os; from pathlib import Path; print(json.dumps({'uid':os.geteuid(),'compatible':Path('/proc/device-tree/compatible').read_bytes().decode().split('\\0'),'kernel':os.uname().release,'boot_magic':Path('/dev/mmcblk0p6').open('rb').read(4).hex(),'system_magic':Path('/dev/mmcblk0p8').open('rb').read(4).hex(),'devices':all(Path(p).exists() for p in ('/dev/ttyS3','/dev/ttyS5','/dev/fb0'))}))"
+    platform=json.loads(run(c,'python3 -c '+shlex.quote(code)))
+    require(platform['uid']==0,'Printer installation requires root')
+    require('rockchip,rv1106' in platform['compatible'],'Unsupported printer platform; Rockchip RV1106 required')
+    require(platform['kernel'].startswith('5.10.'),'Unsupported printer kernel; Linux 5.10 required')
+    require(platform['devices'],'Required S1 UART or display device missing')
+    require(platform['boot_magic']=='d00dfeed','Original boot image is not a supported FIT image')
+    require(platform['system_magic']=='68737173','Original system image is not SquashFS')
     run(c,'test -b /dev/mmcblk0p17 && test -x /usr/bin/rk_ota') if require_a else None
     mounts=run(c,'cat /proc/mounts')
     if require_a:
@@ -428,8 +432,8 @@ def activate(args,s,work):
         run(c,'dd if='+BASE+'/bootstrap.img of=/dev/mmcblk0p9 bs=1048576 && sync')
         size=(work/'bootstrap.img').stat().st_size
         require(run(c,f'head -c {size} /dev/mmcblk0p9 | sha256sum').split()[0]==m['files']['bootstrap.img'],'System B readback mismatch: stay in A and restore from backup')
-        require(run(c,'sha256sum /dev/mmcblk0p6').split()[0]==KNOWN_BOOT,'Unexpected A kernel change')
-        require(run(c,'sha256sum /dev/mmcblk0p8').split()[0] in KNOWN_SYSTEM_HASHES,'Unexpected A system change')
+        require(run(c,'sha256sum /dev/mmcblk0p6').split()[0]==live_partitions['6'],'Unexpected A kernel change')
+        require(run(c,'sha256sum /dev/mmcblk0p8').split()[0]==live_partitions['8'],'Unexpected A system change')
         run(c,'/usr/bin/rk_ota --misc=other --mode=retry && sync')
         print('B activated and verified. Rebooting. New Debian SSH host keys will differ.')
         c.exec_command('/bin/busybox reboot')

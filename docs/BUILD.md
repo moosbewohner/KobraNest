@@ -43,6 +43,8 @@ Der Code nutzt LibVNCClient aus LibVNCServer. Zum Neubau sind ein passender ARMv
 
 Bestehende Fremdlizenzen werden durch dieses Paket nicht ersetzt. Die Debian-Binaerdistribution enthaelt viele Komponenten mit eigenen Lizenzen. Fuer eine oeffentliche Weiterverteilung deren Quellcode- und Lizenzpflichten beachten; Paket und Viewer-Quellcode sind keine vollstaendige Quellcode-Sammlung aller Debian-Abhaengigkeiten.
 
-## Verified reset variant
+## Initial compatibility check
 
-System A also accepts the exact full-partition SHA-256 `dc6b2a43642bb7f7221a43aa0aa5d14ad7b781b55c88aebaf2e84a6bae1471d2`. Compared with the initial reference, all 5660094 bytes of the SquashFS filesystem are identical (SHA-256 `c8de64c981f72b1407ad677727528552bc2112f02195026349e2122e119c9e3f`). Differences begin after the filesystem ends. Checks still require one of the two exact partition hashes during inspection and activation; this is not a blanket allowance for arbitrary partition tails or firmware.
+The initial check reads platform metadata, partition sizes and image headers rather than hashing whole firmware partitions against a global whitelist. It requires ARMv7 RV1106, Linux 5.10, original slot A, SquashFS, a FIT boot image, the documented partition sizes, the expected UART/display devices and the existing data mount/boot-control tool. Incompatible layouts and mounted slot B are still rejected.
+
+This does not establish universal compatibility with every firmware or model. Backup files and uploaded images retain their SHA-256 checks. Before activation, live partitions must still match this device's own backup (apart from the already validated misc-padding exception). Flash readback is checked, and stock A must remain unchanged from its pre-write value.

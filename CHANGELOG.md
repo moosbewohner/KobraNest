@@ -1,5 +1,11 @@
 # Changelog
 
+## Compatibility preflight
+
+- Replace the initial byte-exact firmware whitelist with platform, layout, image format and device checks.
+- Retain backup, transfer, device-consistency and flash-readback verification.
+
+
 ## Camera controls
 
 - Persistent camera on/off, resolution, frame rate and idle slowdown in the DE/EN web dashboard.
