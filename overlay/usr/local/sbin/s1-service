@@ -8,9 +8,9 @@ ssh-avnc)
 light)
     exec /usr/local/sbin/s1-light >>/var/log/s1-light.log 2>&1 ;;
 mcu1)
-    exec /usr/bin/nice -n -20 /usr/bin/socat -d -d -T 10 TCP-LISTEN:7003,bind=$PRINTER_IP,range=$PI_IP/32,reuseaddr,fork,max-children=1,nodelay,keepalive,keepidle=5,keepintvl=1,keepcnt=3 FILE:/dev/ttyS3,rawer,b576000,echo=0,clocal,crtscts=0 >>/var/log/mcu1.log 2>&1 ;;
+    exec /usr/bin/nice -n -20 /usr/bin/socat -d -d -T 10 TCP-LISTEN:7003,bind=0.0.0.0,so-bindtodevice=eth1,range=$PI_IP/32,reuseaddr,fork,max-children=1,nodelay,keepalive,keepidle=5,keepintvl=1,keepcnt=3 FILE:/dev/ttyS3,rawer,b576000,echo=0,clocal,crtscts=0 >>/var/log/mcu1.log 2>&1 ;;
 mcu2)
-    exec /usr/bin/nice -n -20 /usr/bin/socat -d -d -T 10 TCP-LISTEN:7005,bind=$PRINTER_IP,range=$PI_IP/32,reuseaddr,fork,max-children=1,nodelay,keepalive,keepidle=5,keepintvl=1,keepcnt=3 FILE:/dev/ttyS5,rawer,b576000,echo=0,clocal,crtscts=0 >>/var/log/mcu2.log 2>&1 ;;
+    exec /usr/bin/nice -n -20 /usr/bin/socat -d -d -T 10 TCP-LISTEN:7005,bind=0.0.0.0,so-bindtodevice=eth1,range=$PI_IP/32,reuseaddr,fork,max-children=1,nodelay,keepalive,keepidle=5,keepintvl=1,keepcnt=3 FILE:/dev/ttyS5,rawer,b576000,echo=0,clocal,crtscts=0 >>/var/log/mcu2.log 2>&1 ;;
 ssh)
     exec /usr/sbin/dropbear -F -E -p 22 -r /etc/dropbear/dropbear_ed25519_host_key -r /etc/dropbear/dropbear_ecdsa_host_key >>/var/log/dropbear.log 2>&1 ;;
 gui)

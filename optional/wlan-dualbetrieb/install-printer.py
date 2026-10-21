@@ -36,6 +36,12 @@ if '# Load WLAN hardware before the GUI' not in b:
 if 's1-dual-network' not in s:
     needle='case "${1:-}" in';assert s.count(needle)==1
     s=s.replace(needle,needle+'\nnetwork)\n    exec /usr/local/sbin/s1-dual-network >>/var/log/s1-network.log 2>&1 ;;')
+# Patch the extracted runtime too: its service may predate this installer.
+# SO_BINDTODEVICE prevents both incoming WLAN connections and WLAN replies.
+for port in (7003,7005):
+    pattern=r'(TCP-LISTEN:'+str(port)+r',)bind=[^,\s]+,(?:so-bindtodevice=[^,\s]+,)?'
+    s,count=re.subn(pattern,r'\1bind=0.0.0.0,so-bindtodevice=eth1,',s)
+    assert count==1, 'Unknown MCU listener layout; refusing a WLAN-capable tunnel'
 if 's1-service network' not in i:
     needle='::once:/usr/local/sbin/s1-health';assert i.count(needle)==1
     i=i.replace(needle,'::respawn:/usr/local/sbin/s1-service network\n'+needle)

@@ -57,3 +57,9 @@ Am Referenzdrucker wurden eine eigene DHCP-Adresse und SSH darueber mit geprueft
 Rueckweg nur mit angeschlossenem LAN: Netzwerk-Zusatzzeile aus inittab entfernen, init neu einlesen und den Netzwerkdienst kontrolliert beenden; bei Bedarf .before-wifi-Sicherungen wiederherstellen und geplant neu starten. Originale Bootpartitionen und Stock-System sind unberuehrt.
 
 HelixScreen-Netzwerktest: ping muss im Prozess-Suchpfad liegen. /usr/bin/ping kann als Wrapper `exec /bin/busybox ping "$@"` bereitgestellt werden. Der optionale WLAN-Installer und das Staging des Grundpakets ergaenzen diesen Befehl.
+
+## LAN-Tunnel / LAN tunnels
+
+Die MCU-TCP-Ports 7003 und 7005 sind mit SO_BINDTODEVICE an eth1 gebunden. WLAN dient der Verwaltung und ist kein MCU-Transport. Ohne LAN-Adapter oder Kabel gibt es keinen WLAN-Fallback. Der Pi muss die LAN-IP des Druckers verwenden; die WLAN-IP ist dafuer ungeeignet. Eine eigene Route zum Pi fuehrt Antworten ueber eth1.
+
+MCU TCP ports 7003 and 7005 are bound to eth1 using SO_BINDTODEVICE. Wi-Fi is for administration, never MCU transport. No wired link means no Wi-Fi fallback. Configure the Pi with the printer LAN address, not its Wi-Fi address. A dedicated route sends replies over eth1.

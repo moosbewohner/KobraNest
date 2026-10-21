@@ -37,6 +37,13 @@ try:
    ip('link','set','eth1','up')
    if lan_dhcp is None or lan_dhcp.poll() is not None:
     lan_dhcp=subprocess.Popen(['/bin/busybox','udhcpc','-f','-i','eth1','-s','/usr/local/sbin/s1-wifi-dhcp','-p','/run/s1/lan-dhcp.pid','-t','3','-T','3','-A','10'],umask=0o077)
+  # Route MCU replies over wired LAN. Listener sockets are also bound to eth1,
+  # so an unplugged cable can never fall back to WLAN.
+  if P('/sys/class/net/eth1').exists():
+   for line in P('/etc/s1-network.conf').read_text().splitlines():
+    if line.startswith('PI_IP='):
+     pi_ip=str(ipaddress.IPv4Address(line.split('=',1)[1].strip().strip('\"').strip("'")))
+     ip('route','replace',pi_ip+'/32','dev','eth1','metric','50')
   profile=P('/etc/wpa_supplicant/s1.conf')
   if not profile.exists():time.sleep(5);continue
   profile.chmod(0o600)
