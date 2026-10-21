@@ -1,3 +1,30 @@
+# Reparatur & Recovery im Assistenten
+
+Unter **Reparatur & Recovery** im Assistenten werden die bereits eingegebenen Drucker-SSH-Daten verwendet. Ein Pi-Zugang ist nicht erforderlich. Der globale Warnhinweis muss akzeptiert sein. Ein unbekannter SSH-Fingerabdruck wird wie bei der Installation zuerst zur unabhaengigen Pruefung angezeigt.
+
+1. **Recovery-Diagnose starten:** Liest aktiven Slot, Architektur, Partitionslayout, vorhandene Grunddateien und die passende PC-Sicherung unter dem normalen Arbeitsverzeichnis. Keine Dienstneustarts, Bootwechsel oder Schreibzugriffe auf Druckerpartitionen. Eine Diagnose ist keine vollstaendige Integritaetspruefung des entpackten Debian-Dateisystems.
+2. **Zu Anycubic zurueckkehren:** Nur bei laufendem KobraNest B mit vorhandenem Rueckkehr-Helfer. Waehlt A und faehrt herunter. 15 Sekunden warten, ausschalten, zehn Sekunden warten und wieder einschalten. Kein automatischer Neustart.
+3. **Installation sichern und Neuinstallation vorbereiten:** Nur aus Original A. Prueft, dass die alte Installation weder gemountet noch von Prozessen verwendet wird, und benennt sie in einen einmaligen `.recovery-...`-Ordner um. Der PC-Arbeitsordner mit Sicherungen wird ebenfalls archiviert. Keine Daten werden dabei geloescht. Anschliessend normale Erstinstallation mit neuer Sicherung/Build durchfuehren. Genuegend Platz fuer alte und neue Installation bereithalten.
+4. **Slot B aus PC-Sicherung wiederherstellen:** Nur aus Original A. Verwendet `devices/DRUCKER-IP/device.json` und `backup/p7.img`, `p9.img` samt Referenzbildern p1/p6/p8. Alle benoetigten Dateien, Groessen und SHA-256-Werte werden geprueft. Aktuelle p1, p6 und p8 muessen zur Sicherung passen. Das ist eine Bindung an den gesicherten Geraetezustand und bleibt bewusst strenger als die einfache Anfangspruefung. Die aktuelle Version von B wird auf dem Drucker gesichert, die Sicherungen werden kontrolliert, A wird als Startslot gehalten, dann werden ausschliesslich p7/p9 geschrieben und vollstaendig zurueckgelesen. p1/p6/p8 werden abschliessend erneut kontrolliert. Mindestens 512 MiB freier Datenspeicher erforderlich. Es erfolgt kein Neustart.
+
+Fuer jede schreibende Aktion sind eine maximal 15 Minuten alte Diagnose desselben SSH-Geraets, **YES** und die bestaetigte Leerlaufpruefung am Drucker erforderlich. Ein ueber Moonraker bekannter laufender oder pausierter Druck sperrt die Aktion trotzdem. Ein unbekannter Pi-Status ersetzt nicht die Leerlaufpruefung am Geraet.
+
+Die Slot-B-Sicherung enthaelt den Stand **vor der zugehoerigen Installation**. Sie ist kein vollstaendiges Backup aller Debian-Konfigurationen oder Drucker-Datenpartitionen. PC-Sicherungen niemals von einem anderen Drucker uebernehmen. Nach einem IP-Wechsel muss das zugehoerige Arbeitsverzeichnis korrekt zugeordnet werden; es gibt keinen automatischen Import beliebiger Sicherungsordner.
+
+**Pruefstand:** DE/EN-Oberflaeche, API-Zugriffsschutz, Bestaetigungen, Zielbindung, Pruefsummenfehler und der Schreibablauf wurden mit simulierten Transporten getestet. Ein kompletter Recovery-Schreibtest auf Hardware steht aus. Die bereits bestehende Rueckkehr aus KobraNest ist separat am Referenzgeraet erprobt.
+
+## English
+
+Open **Repair & Recovery** in the assistant. Reuse the printer credentials above; no Pi login is needed. Start with read-only diagnosis. Write actions require a recent diagnosis of the same SSH identity, **YES**, and confirmation that no print is running or paused. A known active Moonraker job blocks writes.
+
+- Return to Anycubic selects A and shuts down. Wait 15 seconds, switch off, wait ten seconds, then switch on.
+- Archive installation, from stock A only, preserves the old device installation and PC workspace under unique archive names. Then use the normal fresh installation workflow.
+- Restore slot B, from stock A only, verifies your own PC backup and the device's p1/p6/p8 references, backs up current B, restores only p7/p9 and checks complete readback. A stays active. It does not restore bootloader, A, raw misc/env images, all Debian settings or user data. At least 512 MiB free storage is required.
+
+The new recovery write flow is simulation-tested, not yet validated by a full hardware restoration. No USB/maskrom recovery is included. Without a booted SSH-capable system, a separate hardware-specific Rockchip procedure is required.
+
+---
+
 # Sicherung und Rueckkehr
 
 ## Funktionierendes Debian

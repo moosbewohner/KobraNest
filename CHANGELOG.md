@@ -1,5 +1,12 @@
 # Changelog
 
+## Guided recovery
+
+- DE/EN read-only diagnosis, return to stock, archive for reinstall and own-backup slot-B restore.
+- Fresh diagnosis/SSH identity, explicit YES/idle gates, protected A/env and before-write B backups.
+- Recovery write path simulation-tested; full hardware restoration test pending.
+
+
 ## Compatibility preflight
 
 - Replace the initial byte-exact firmware whitelist with platform, layout, image format and device checks.

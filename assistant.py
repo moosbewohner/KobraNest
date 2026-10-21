@@ -16,6 +16,7 @@ import webbrowser
 
 import paramiko
 import installer
+import recovery
 
 PACKAGE = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 installer.PACKAGE = PACKAGE
@@ -499,7 +500,7 @@ def make_server(assistant, port=0):
             origin = f'http://127.0.0.1:{self.server.server_port}'
             if not self.authorized() or self.headers.get('Origin') != origin:
                 return self.reply(403, {'error': 'Zugriff nicht erlaubt.'})
-            if self.path not in ('/api/check', '/api/operate'):
+            if self.path not in ('/api/check', '/api/operate', '/api/recovery'):
                 return self.reply(404, {'error': 'Unbekannte Aktion.'})
             try:
                 length = int(self.headers.get('Content-Length', '0'))
@@ -510,6 +511,8 @@ def make_server(assistant, port=0):
                     raise ValueError('Bitte zuerst den Warnhinweis bestätigen.')
                 if self.path == '/api/check':
                     assistant.start(data)
+                elif self.path == '/api/recovery':
+                    recovery.start(assistant, data)
                 else:
                     assistant.operate(data)
                 self.reply(202, {'started': True})
