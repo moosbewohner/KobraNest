@@ -1,0 +1,36 @@
+name: Build pinned KobraNest HelixScreen
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  armhf-framebuffer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: integration
+      - uses: actions/checkout@v4
+        with:
+          repository: Kobra-S1/helixscreen
+          ref: 67ecd2597f63d29b727a74d679ffcb3dbc848fd3
+          submodules: recursive
+          path: source
+      - name: Build Debian trixie ARM32 toolchain
+        run: docker build -t kobranest/helix-armhf:trixie integration/source/helixscreen-build
+      - name: Compile framebuffer release
+        run: |
+          docker run --rm -v "$PWD/source":/src -w /src kobranest/helix-armhf:trixie sh -c 'make PLATFORM_TARGET=pi32-fbdev HELIX_PACKAGING=1 SKIP_OPTIONAL_DEPS=1 && make PLATFORM_TARGET=pi32-fbdev HELIX_PACKAGING=1 SKIP_OPTIONAL_DEPS=1 gen-images gen-splash-3d-pi32 gen-printer-images release-pi32-fbdev'
+      - name: Package binary and corresponding sources
+        run: python3 integration/source/helixscreen-build/package.py "$PWD"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: helixscreen-kobrian-armhf
+          retention-days: 5
+          compression-level: 0
+          path: |
+            helixscreen-kobranest-armhf.tar.gz
+            helixscreen-kobrian-source.tar.gz
+            *.tar.gz.sha256
+            helixscreen-build.json
