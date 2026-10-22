@@ -133,7 +133,15 @@ def install_release(root, archive):
         for item in tar:
             assert item.name == 'helixscreen' or item.name.startswith('helixscreen/')
             assert '..' not in Path(item.name).parts
-        tar.extractall(staging, filter='data')
+        # Keep the SSH reader informed while the S1 expands the larger release.
+        members = tar.getmembers()
+        print('HelixScreen archive validated; extracting', len(members), 'entries', flush=True)
+        def progress_members():
+            for index, item in enumerate(members):
+                if index % 50 == 0:
+                    print('HelixScreen extraction:', index, '/', len(members), flush=True)
+                yield item
+        tar.extractall(staging, members=progress_members(), filter='data')
     candidate = staging/'helixscreen'
     assert (candidate/'config/settings.json.template').is_file(), 'Settings template missing'
     if destination.exists() and (destination/'config/settings.json').exists():
