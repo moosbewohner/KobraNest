@@ -3,7 +3,7 @@
 GPL-3.0-only applies to original KobraNest code, not to third-party components or third-party branding.
 
 - Debian packages: individual licenses and copyright notices under `/usr/share/doc` inside the runtime. See `docs/BUILD.md` for upstream and source information.
-- HelixScreen v1.0.5: binary and matching upstream source archives accompany the installation package. Preserve their notices and licenses.
+- HelixScreen 1.1.0-beta.10: binary and matching upstream source archives accompany the installation package. Preserve their notices and licenses.
 - KlipperScreen: pinned upstream revision and license information are documented in `docs/BUILD.md`.
 - Framebuffer VNC viewer: GPL-2.0-or-later; source and license in `source/viewer/`.
 - Realtek RTL8153B firmware: distributed unchanged under `optional/wlan-dualbetrieb/firmware/LICENCE.rtlwifi_firmware.txt`; origin and SHA-256 in the adjacent README.

@@ -295,7 +295,7 @@ def stage_display(c,s):
     run(c,'mkdir -p '+directory)
     for name in ('install.py','s1-ui','s1-ui-select','s1-helix'):
         put(c,directory+'/'+name,PACKAGE/'optional/helixscreen'/name,0o755)
-    archive=PACKAGE/'payload/helixscreen-pi32-v1.0.5.tar.gz'
+    archive=PACKAGE/'payload/helixscreen-kobranest-armhf.tar.gz'
     remote=directory+'/'+archive.name
     present=run(c,'if test -f '+remote+'; then sha256sum '+remote+'; else echo missing; fi').split()[0]
     if present!=sha(archive):put(c,remote,archive)

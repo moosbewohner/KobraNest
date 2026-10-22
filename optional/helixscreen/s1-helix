@@ -40,7 +40,7 @@ fi
 /usr/local/sbin/s1-display-init
 : >/var/log/HelixScreen.log
 cd /opt/helixscreen
-HOME=/root/.helixscreen HELIX_DISPLAY_BACKEND=fbdev \
+HOME=/root/.helixscreen HELIX_DIAGNOSTIC_UPLOADS=0 HELIX_DISPLAY_BACKEND=fbdev \
     ./bin/helix-screen-fbdev --size 800x480 --rotate 180 --skip-wizard \
     --no-sound --skip-splash --render-2d \
     --moonraker "ws://$PI_IP:7125" --log-dest console \

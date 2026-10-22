@@ -1,0 +1,9 @@
+{
+  "upstream": "https://github.com/Kobra-S1/helixscreen",
+  "branch": "kobrian",
+  "commit": "67ecd2597f63d29b727a74d679ffcb3dbc848fd3",
+  "version": "1.1.0-beta.10",
+  "target": "pi32-fbdev",
+  "toolchain": "Debian trixie crossbuild-essential-armhf, GCC14",
+  "adaptation": "Framebuffer compatibility symlink; no upstream C++ changes"
+}

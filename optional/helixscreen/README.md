@@ -1,10 +1,13 @@
 # HelixScreen + KlipperScreen on the Kobra S1
 
-The package includes the unmodified HelixScreen pi32 v1.0.5 release, pinned to
-SHA-256 c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa819235b66.
-Upstream: https://github.com/prestonbrown/helixscreen/tree/v1.0.5
-The matching source archive and binary release are in payload/. LICENSE is
-included here. Sources and build instructions are upstream in that archive.
+The package includes the tested Kobra-S1/helixscreen kobrian branch build,
+version 1.1.0-beta.10, commit 67ecd2597f63d29b727a74d679ffcb3dbc848fd3.
+This is a pinned beta branch build. Later ACE changes are not included.
+Binary SHA-256: 6cb694d4b5935e027de5fa08598ea42445087b9dc13e4ad799064243e6556f32.
+Upstream: https://github.com/Kobra-S1/helixscreen/tree/kobrian
+Binary and corresponding sources are in payload/. Reproduction instructions
+and Dockerfile are in source/helixscreen-build/. No upstream C++ changes;
+compatibility symlink and provenance added for the S1 supervisor.
 
 The native stage action installs both display interfaces before activation.
 The assistant also checks/installs the display module when resuming add-ons.

@@ -21,9 +21,9 @@ jobs:
         run: docker build -t kobranest/helix-armhf:trixie integration/source/helixscreen-build
       - name: Compile framebuffer release
         run: |
-          docker run --rm -v "$PWD/source":/src -w /src kobranest/helix-armhf:trixie sh -c 'make PLATFORM_TARGET=pi32-fbdev HELIX_PACKAGING=1 SKIP_OPTIONAL_DEPS=1 && make PLATFORM_TARGET=pi32-fbdev HELIX_PACKAGING=1 SKIP_OPTIONAL_DEPS=1 gen-images gen-splash-3d-pi32 gen-printer-images release-pi32-fbdev'
+          docker run --rm -v "$PWD/source":/src -w /src kobranest/helix-armhf:trixie sh -c 'make PLATFORM_TARGET=pi32-fbdev HELIX_PACKAGING=1 SKIP_OPTIONAL_DEPS=1 TARGET_LDFLAGS="-static-libstdc++ -static-libgcc -Wl,--gc-sections /usr/lib/arm-linux-gnueabihf/libzstd.a" && make PLATFORM_TARGET=pi32-fbdev HELIX_PACKAGING=1 SKIP_OPTIONAL_DEPS=1 TARGET_LDFLAGS="-static-libstdc++ -static-libgcc -Wl,--gc-sections /usr/lib/arm-linux-gnueabihf/libzstd.a" gen-images gen-splash-3d-pi32 gen-printer-images release-pi32-fbdev'
       - name: Package binary and corresponding sources
-        run: python3 integration/source/helixscreen-build/package.py "$PWD"
+        run: docker run --rm -v "$PWD":/build -w /build kobranest/helix-armhf:trixie python3 integration/source/helixscreen-build/package.py /build
       - uses: actions/upload-artifact@v4
         with:
           name: helixscreen-kobrian-armhf

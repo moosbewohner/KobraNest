@@ -30,3 +30,10 @@
 - RTL8153B firmware and factory-MAC reinitialization.
 
 See README for current validation limits.
+
+## 2026-10-22 — tested HelixScreen branch update
+
+- Default display runtime: HelixScreen 1.1.0-beta.10 from Kobra-S1/helixscreen, kobrian branch, pinned at 67ecd2597f63d29b727a74d679ffcb3dbc848fd3.
+- Display, touch and a print test confirmed on the reference S1. Further unfinished ACE changes are excluded.
+- Fresh installations and recognized upgrades use the new runtime; existing settings are preserved and the previous runtime is backed up.
+- Matching source archive, ARM32 Debian trixie toolchain, asset dependencies and static OpenSSL/Zstandard link instructions included.

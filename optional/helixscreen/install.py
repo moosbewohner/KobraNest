@@ -11,7 +11,7 @@ import signal
 import subprocess
 import tarfile
 
-RELEASE_SHA = 'c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa819235b66'
+RELEASE_SHA = '6cb694d4b5935e027de5fa08598ea42445087b9dc13e4ad799064243e6556f32'
 SOURCE = Path(__file__).resolve().parent
 
 
@@ -28,7 +28,7 @@ def configuration(template, ip, language):
     result.update(wizard_completed=True, language=language, sounds_enabled=False,
                   ui_sounds_enabled=False, disable_sound=True, telemetry_enabled=False)
     result['input']['touch_device'] = '/dev/input/event0'
-    result['display'].update(rotate=180, animations_enabled=False, screensaver_type=0,
+    result['display'].update(rotate=180, animations_enabled=False, screensaver_type='off',
                              sleep_sec=0, dim_sec=0, time_format=1)
     printer = result['printers']['default']
     printer.update(name='Kobra S1', moonraker_host=ip, moonraker_port=7125, moonraker_api_key=False)
@@ -101,6 +101,63 @@ def install_acepro(root):
     print('ACE Pro panel and both menus installed; backups:', backup)
 
 
+
+LEGACY_RELEASE_SHAS = {'c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa819235b66'}
+
+
+def validate_runtime(root, destination):
+    binary = destination/'bin/helix-screen-fbdev'
+    assert binary.is_file(), 'Framebuffer binary missing'
+    command = ['/usr/bin/ldd', '/'+binary.relative_to(root).as_posix()]
+    if root != Path('/'):
+        command = [shutil.which('chroot') or '/usr/sbin/chroot', str(root)] + command
+    result = subprocess.run(command, capture_output=True, text=True, check=True)
+    assert 'not found' not in result.stdout+result.stderr, 'Runtime library missing'
+
+
+def install_release(root, archive):
+    """Upgrade only a recognized release, keeping settings and the previous tree."""
+    import time
+    destination = root/'opt/helixscreen'
+    marker = destination/'.kobrian-release'
+    if destination.exists():
+        assert marker.is_file(), 'Unrecognized HelixScreen installation; not overwritten'
+        version = marker.read_text().strip()
+        assert version in LEGACY_RELEASE_SHAS | {RELEASE_SHA}, 'Unrecognized HelixScreen release; not overwritten'
+        if version == RELEASE_SHA:
+            return destination
+    staging = root/'opt/helixscreen-install-pending'
+    assert not staging.exists(), 'Previous partial install present; inspect before retry'
+    staging.mkdir(parents=True)
+    with tarfile.open(archive, 'r:gz') as tar:
+        for item in tar:
+            assert item.name == 'helixscreen' or item.name.startswith('helixscreen/')
+            assert '..' not in Path(item.name).parts
+        tar.extractall(staging, filter='data')
+    candidate = staging/'helixscreen'
+    assert (candidate/'config/settings.json.template').is_file(), 'Settings template missing'
+    if destination.exists() and (destination/'config/settings.json').exists():
+        settings = destination/'config/settings.json'
+        json.loads(settings.read_text())
+        shutil.copy2(settings, candidate/'config/settings.json')
+    validate_runtime(root, candidate)
+    put(candidate/'.kobrian-release', (RELEASE_SHA+'\n').encode(), 0o644)
+    backup = None
+    if destination.exists():
+        backup = root/'var/backups/kobrian-display'/('helixscreen-'+str(time.time_ns()))
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(destination, backup)
+    try:
+        os.replace(candidate, destination)
+    except OSError:
+        if backup is not None:
+            os.replace(backup, destination)
+        raise
+    staging.rmdir()
+    print('HelixScreen release installed; previous tree:', backup or 'fresh install')
+    return destination
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', required=True)
@@ -116,41 +173,22 @@ def main():
         assert root == Path('/') and 'busybox' in os.readlink('/proc/1/exe')
     assert (root/'etc/s1-boot-ready').is_file(), 'Kobrian root required'
     assert (root/'opt/KlipperScreen/screen.py').is_file(), 'Keep working KlipperScreen first'
-    archive = args.archive or SOURCE/'helixscreen-pi32-v1.0.5.tar.gz'
+    archive = args.archive or SOURCE/'helixscreen-kobranest-armhf.tar.gz'
     if not archive.exists():
-        archive = SOURCE.parents[1]/'payload/helixscreen-pi32-v1.0.5.tar.gz'
+        archive = SOURCE.parents[1]/'payload/helixscreen-kobranest-armhf.tar.gz'
     digest = hashlib.sha256()
     with archive.open('rb') as file:
         for block in iter(lambda:file.read(1048576), b''):
             digest.update(block)
     assert digest.hexdigest() == RELEASE_SHA, 'HelixScreen release checksum mismatch'
-    destination = root/'opt/helixscreen'
-    marker = destination/'.kobrian-release'
-    if destination.exists():
-        assert marker.is_file() and marker.read_text().strip() == RELEASE_SHA, 'Existing unknown HelixScreen installation; not overwritten'
-    else:
-        staging = root/'opt/helixscreen-install-pending'
-        assert not staging.exists(), 'Previous partial install present; inspect before retry'
-        staging.mkdir(parents=True)
-        with tarfile.open(archive, 'r:gz') as tar:
-            for item in tar:
-                assert item.name == 'helixscreen' or item.name.startswith('helixscreen/')
-                assert '..' not in Path(item.name).parts
-            tar.extractall(staging, filter='data')
-        os.replace(staging/'helixscreen', destination)
-        staging.rmdir()
-        put(marker, (RELEASE_SHA+'\n').encode(), 0o644)
+    destination = install_release(root, archive)
     settings = destination/'config/settings.json'
     if not settings.exists():
         template = json.loads((destination/'config/settings.json.template').read_text())
         put(settings, (json.dumps(configuration(template, ip, args.language), indent=2)+'\n').encode(), 0o600)
     else:
         json.loads(settings.read_text())  # Never reset user settings on reinstall.
-    command = ['/usr/bin/ldd', '/opt/helixscreen/bin/helix-screen-fbdev']
-    if root != Path('/'):
-        command = [shutil.which('chroot') or '/usr/sbin/chroot', str(root)] + command
-    result = subprocess.run(command, capture_output=True, text=True, check=True)
-    assert 'not found' not in result.stdout+result.stderr, 'Runtime library missing'
+    validate_runtime(root, destination)
     service = root/'usr/local/sbin/s1-service'
     text = service.read_text()
     previous = 'exec /usr/local/sbin/s1-gui >>/var/log/s1-gui.log 2>&1'
