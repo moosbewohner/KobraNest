@@ -115,6 +115,21 @@ def validate_runtime(root, destination):
     assert 'not found' not in result.stdout+result.stderr, 'Runtime library missing'
 
 
+def install_custom_images(destination):
+    """Offer bundled artwork without changing the selected image or user files."""
+    name = 'rinkhals_s1.png'
+    source = SOURCE/'custom-images'/name
+    data = source.read_bytes()
+    assert hashlib.sha256(data).hexdigest() == '1a43fa4f9ac700bd4db64efe6539220e6a881ee4c3b21feeecf896db165256bf', 'Custom image checksum mismatch'
+    target = destination/'config/custom_images'/name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if target.exists():
+        print('Custom image already present; retained:', name)
+    else:
+        put(target, data, 0o644)
+        print('Custom image available:', name)
+
+
 def install_release(root, archive):
     """Upgrade only a recognized release, keeping settings and the previous tree."""
     import time
@@ -148,6 +163,8 @@ def install_release(root, archive):
         settings = destination/'config/settings.json'
         json.loads(settings.read_text())
         shutil.copy2(settings, candidate/'config/settings.json')
+    if (destination/'config/custom_images').is_dir():
+        shutil.copytree(destination/'config/custom_images', candidate/'config/custom_images', dirs_exist_ok=True, symlinks=True)
     validate_runtime(root, candidate)
     put(candidate/'.kobrian-release', (RELEASE_SHA+'\n').encode(), 0o644)
     backup = None
@@ -196,6 +213,7 @@ def main():
         put(settings, (json.dumps(configuration(template, ip, args.language), indent=2)+'\n').encode(), 0o600)
     else:
         json.loads(settings.read_text())  # Never reset user settings on reinstall.
+    install_custom_images(destination)
     validate_runtime(root, destination)
     service = root/'usr/local/sbin/s1-service'
     text = service.read_text()

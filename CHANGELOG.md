@@ -43,3 +43,8 @@ See README for current validation limits.
 - Add load-tested ASIX and CDC-NCM modules, gated by exact kernel build and file checksums.
 - Load before network setup; fail without blocking boot and preserve built-in Realtek.
 - Adapter-specific hardware validation remains pending.
+
+## 2026-10-23 — bundled custom printer image
+
+- Add rinkhals_s1.png to HelixScreen Custom Images during installation without selecting it automatically.
+- Preserve existing custom images during recognized upgrades and retain user replacements with the same filename.

@@ -33,3 +33,7 @@ Debian root with --root, or use --root / --start on a running KobraNest system.
 VNC mirrors KlipperScreen only; HelixScreen uses the framebuffer directly.
 Wi-Fi and USB OTG are separate options. This module installs no Pi macros,
 changes no printer.cfg and sends no heating or motion commands.
+
+## Bundled custom image
+
+rinkhals_s1.png is installed into /opt/helixscreen/config/custom_images/ and can be selected in HelixScreen under Custom Images. It is not selected automatically. Existing custom images, selection settings and any existing file with the same name are preserved. Artwork supplied by the project owner.
