@@ -1,8 +1,10 @@
 # KobraNest
 
+[Bebilderte Anleitung / Illustrated guide](BEBILDERT-DE.md)
+
 ## Erforderliche Vorarbeiten: Rinkhals und Klipper-Tunneling
 
-**Vor der KobraNest-Installation müssen Rinkhals und die passende Klipper-Umgebung aus den von Antiriad gepflegten Kobra-S1-Repositories eingerichtet sein. Erfahrung mit Klipper-Tunneling über LAN oder USB wird vorausgesetzt.**
+**Vor der KobraNest-Installation müssen Rinkhals und die passende Klipper-Umgebung aus den Kobra-S1-Repositories eingerichtet sein. Erfahrung mit Klipper-Tunneling über LAN oder USB wird vorausgesetzt.**
 
 KobraNest ergänzt die lokale Oberfläche und Systemverwaltung auf dem Drucker. Es ersetzt nicht die vorherige Einrichtung von Klipper/Moonraker auf dem externen Host, der passenden MCU-Firmware und des gewählten LAN-/USB-Tunnels. Die ausgewählte Verbindung sollte bereits funktionieren und verstanden sein, bevor das System umgestellt wird. Rinkhals wird unter anderem für den SSH-Zugang im Originalsystem und die Rückkehr-/Start-App benötigt.
 
@@ -18,7 +20,7 @@ Die sichtbare Projektbezeichnung ist KobraNest. Technische Altbezeichnungen in P
 
 # KobraNest S1 – Installation und Bedienung
 
-Stand: 20. Oktober 2026 · Version 0.1
+Stand: 23. Oktober 2026 · Version 0.1
 
 ## 1. Was KobraNest macht
 
@@ -37,7 +39,7 @@ Enthalten sind Bootlogo mit Ladebalken, Startmelodie, Bauraumlicht, SSH, lokale 
 - Internetzugang für Python-Abhängigkeiten, Build und gegebenenfalls Debian-WLAN-Pakete.
 - Kein laufender oder pausierter Druck während Einrichtung und Umschaltung. Stromversorgung während Übertragung und Aktivierung nicht unterbrechen.
 
-Das Projekt ist am Referenzdrucker erprobt, aber keine breit auf unterschiedlichen Geräten getestete Serienfirmware. Die zuletzt um WLAN und USB ergänzte Gesamtinstallation wurde noch nicht vollständig von einem frischen Originalsystem erneut durchlaufen. Linux als Installations-PC ist vorgesehen, aber noch nicht vollständig praktisch erprobt.
+Das Projekt ist am Referenzdrucker erprobt, aber keine breit auf unterschiedlichen Geräten getestete Serienfirmware. Eine saubere Installation sowie USB-/LAN-Betrieb und die Displayfunktionen wurden am Referenzdrucker praktisch getestet. Linux als Installations-PC ist vorgesehen, aber noch nicht vollständig praktisch erprobt.
 
 ## 3. Paket auf dem PC öffnen
 
@@ -82,7 +84,7 @@ Docker wird auf dem Pi benötigt, nicht auf dem Linux-PC.
 
 Der Assistent erkennt automatisch, ob die eingegebene Adresse zu wlan0 oder eth1 gehört. Diese Verbindung wird für KobraNest vorbereitet. Bei WLAN werden die gespeicherten Netze ausschließlich geräteintern übernommen und HelixScreen mit eingeschaltetem WLAN eingerichtet. Die WLAN-IP bleibt DHCP-basiert: vor der Installation eine DHCP-Reservierung für dieselbe WLAN-MAC und Adresse im Router einrichten. Bei einer geänderten IP muss auch die Pi-Konfiguration angepasst werden; die neue Adresse kann am Display abgelesen werden.
 
-Beispiel des Referenzaufbaus: Drucker-LAN `192.168.1.67`, Pi `192.168.1.151`, Gateway `192.168.10.1`, Präfix `24`. Diese Adressen nicht ungeprüft auf fremde Netze übertragen. Die verwendete Druckeradresse muss frei und dauerhaft reserviert sein. Im WLAN-Fall gilt die Reservierung für die WLAN-MAC, nicht für einen LAN-Adapter.
+Beispiel des Referenzaufbaus: Drucker-LAN `192.168.1.67`, Pi `192.168.1.151`, Gateway `192.168.1.1`, Präfix `24`. Diese Adressen nicht ungeprüft auf fremde Netze übertragen. Die verwendete Druckeradresse muss frei und dauerhaft reserviert sein. Im WLAN-Fall gilt die Reservierung für die WLAN-MAC, nicht für einen LAN-Adapter.
 
 Wenn bereits KobraNest auf Slot B läuft oder das Zielverzeichnis einer früheren Installation existiert, keine Neuinstallation erzwingen. Erst vorhandene Installation und Sicherungen prüfen.
 
@@ -90,7 +92,7 @@ Wenn bereits KobraNest auf Slot B läuft oder das Zielverzeichnis einer frühere
 
 ### Sicherung & Build
 
-Den Schritt mit dem angezeigten Wort `SICHERN` und der Leerlaufbestätigung freigeben. Originalpartitionen werden auf dem PC gesichert und geprüft. Auf dem Pi baut Docker die gerätespezifischen Startdateien aus der eigenen Firmware. Noch kein Flashen der Bootpartitionen.
+Den Schritt mit dem angezeigten Wort `YES` und der Leerlaufbestätigung freigeben. Originalpartitionen werden auf dem PC gesichert und geprüft. Auf dem Pi baut Docker die gerätespezifischen Startdateien aus der eigenen Firmware. Noch kein Flashen der Bootpartitionen.
 
 Sicherungsordner aufbewahren:
 
@@ -103,7 +105,7 @@ Diese Sicherungen sind gerätespezifisch und gehören nicht in ein öffentlich w
 
 ### Erstellen / Übertragen
 
-Den Vorbereitungsschritt mit `VORBEREITEN` bestätigen. Debian, beide Display-Oberflächen und die Zusatzmodule werden vorbereitet. Im Assistenten ist USB OTG Serial für die MCUs vorausgewählt. Bei Bedarf vor „Sicherung & Build“ auf Netzwerk umstellen. Die gewählte Variante zwischen Sicherung, Vorbereitung und Aktivierung nicht ändern; sie gehört zu den gerätegebundenen Einstellungen.
+Den Vorbereitungsschritt mit `YES` bestätigen. Debian, beide Display-Oberflächen und die Zusatzmodule werden vorbereitet. Im Assistenten ist USB OTG Serial für die MCUs vorausgewählt. Bei Bedarf vor „Sicherung & Build“ auf Netzwerk umstellen. Die gewählte Variante zwischen Sicherung, Vorbereitung und Aktivierung nicht ändern; sie gehört zu den gerätegebundenen Einstellungen.
 
 Der Installer übernimmt die WLAN-Originalmodule vom eigenen Drucker und installiert bei Bedarf die Debian-WLAN-Pakete über das Internet. Bei WLAN-Installation wird das eigene bereits gespeicherte Anycubic-Profil geräteintern übernommen. WLAN-Passwörter werden weder auf den PC exportiert noch im öffentlichen Paket gespeichert. Zertifikatbasierte oder nicht unterstützte Profile werden mit Fehlermeldung abgelehnt. Dieser Schritt schreibt noch keine Bootpartition.
 
@@ -127,7 +129,7 @@ Der Assistent ersetzt die Pi-Konfiguration nicht automatisch. Nach Änderungen n
 
 ### Aktivieren
 
-Erst bei abgeschlossener Pi-Vorbereitung den Aktivierungsschritt wählen. Die angezeigte Bestätigung lautet `INSTALL B DRUCKER-IP` mit der tatsächlichen Adresse.
+Erst bei abgeschlossener Pi-Vorbereitung den Aktivierungsschritt wählen. Die angezeigte Bestätigung lautet `YES` mit der tatsächlichen Adresse.
 
 Der Installer prüft Backup und Firmware erneut, schreibt die vorgesehenen Slot-B-Partitionen p7/p9 und prüft sie durch Rücklesen. Anschließend wird Slot B gewählt und der Drucker neu gestartet. Währenddessen weder Programm noch Stromversorgung unterbrechen.
 

@@ -1,5 +1,7 @@
 # KobraNest
 
+[Bebilderte Anleitung / Illustrated guide](docs/BEBILDERT-DE.md)
+
 **Dein Drucker. Dein System. / Your printer. Your system.**
 
 Lokales Debian 13 für den **Anycubic Kobra S1**, mit HelixScreen, KlipperScreen als Alternative und einer eigenen Wartungs-Weboberfläche. Klipper und Moonraker laufen auf einem externen Raspberry Pi. Technische Altbezeichnungen in internen Pfaden und Dateinamen bleiben aus Kompatibilitätsgründen erhalten.
@@ -18,7 +20,7 @@ ZIP vollständig entpacken, dann **Start-KobraNest.cmd** starten. `_internal` mu
 
 ## Erforderliche Vorarbeiten: Rinkhals und Klipper-Tunneling
 
-**Vor der KobraNest-Installation müssen Rinkhals und die passende Klipper-Umgebung aus den von Antiriad gepflegten Kobra-S1-Repositories eingerichtet sein. Erfahrung mit Klipper-Tunneling über LAN oder USB wird vorausgesetzt.**
+**Vor der KobraNest-Installation müssen Rinkhals und die passende Klipper-Umgebung aus den Kobra-S1-Repositories eingerichtet sein. Erfahrung mit Klipper-Tunneling über LAN oder USB wird vorausgesetzt.**
 
 KobraNest ergänzt die lokale Oberfläche und Systemverwaltung auf dem Drucker. Es ersetzt nicht die vorherige Einrichtung von Klipper/Moonraker auf dem externen Host, der passenden MCU-Firmware und des gewählten LAN-/USB-Tunnels. Die ausgewählte Verbindung sollte bereits funktionieren und verstanden sein, bevor das System umgestellt wird. Rinkhals wird unter anderem für den SSH-Zugang im Originalsystem und die Rückkehr-/Start-App benötigt.
 
@@ -32,7 +34,7 @@ Die verlinkten Anleitungen und ihre Kompatibilitätshinweise vorab lesen. KobraN
 
 ## Required preparation: Rinkhals and Klipper tunneling
 
-**Before installing KobraNest, set up Rinkhals and the appropriate Klipper environment using Antiriad's Kobra-S1 repositories. Experience with Klipper tunneling over LAN or USB is required.**
+**Before installing KobraNest, set up Rinkhals and the appropriate Klipper environment using the Kobra-S1 repositories. Experience with Klipper tunneling over LAN or USB is required.**
 
 KobraNest provides the printer's local interface and system management. It does not replace prior setup of Klipper/Moonraker on the external host, compatible MCU firmware or the selected LAN/USB tunnel. Verify and understand the selected connection before switching systems. Rinkhals is used for access to the original system and the return/start app.
 

@@ -1,8 +1,10 @@
 # KobraNest setup assistant
 
+[Bebilderte Anleitung / Illustrated guide](ILLUSTRATED-EN.md)
+
 ## Required preparation: Rinkhals and Klipper tunneling
 
-**Before installing KobraNest, set up Rinkhals and the appropriate Klipper environment using Antiriad's Kobra-S1 repositories. Experience with Klipper tunneling over LAN or USB is required.**
+**Before installing KobraNest, set up Rinkhals and the appropriate Klipper environment using the Kobra-S1 repositories. Experience with Klipper tunneling over LAN or USB is required.**
 
 KobraNest provides the printer's local interface and system management. It does not replace prior setup of Klipper/Moonraker on the external host, compatible MCU firmware or the selected LAN/USB tunnel. Verify and understand the selected connection before switching systems. Rinkhals is used for access to the original system and the return/start app.
 
@@ -33,7 +35,7 @@ is saved in localStorage; SSH credentials are not stored there.
 5. Check the Pi setup using PI.md. Matching service files and chamber-light
    configuration are generated in the backup workspace's `pi-config` folder.
    Existing printer.cfg and Pi services are not automatically overwritten.
-6. Confirm the Pi setup, printer idle state and **INSTALL B printer-IP** to
+6. Confirm the Pi setup, printer idle state and **YES** to
    activate slot B. The CLI verifies backups and firmware, writes only p7/p9,
    verifies by reading back and requests a reboot. Original slot A is preserved.
 7. Select **Check startup** afterwards. Debian uses a separate SSH host key;
@@ -41,8 +43,7 @@ is saved in localStorage; SSH credentials are not stored there.
    printer port 8080, and check display, touch and Klipper on the printer.
 
 The technical confirmation words are identical in both languages. Passwords
-are kept only in memory and the current form; fields are cleared after a step
-unless a host-key confirmation is pending. Keep the assistant and console open
+are kept only in memory and the current form; credentials remain available for the current browser session. Reloading or closing the page clears them. Keep the assistant and console open
 until the operation completes. Do not interrupt partition writes.
 
 Each writing step checks the Pi print state again and rejects running or paused
@@ -51,10 +52,8 @@ is required. Known changed SSH keys are rejected, not automatically replaced.
 Do not delete backups or blindly rerun a failed flash. A completed Debian stage
 can resume add-on setup; partial rootfs uploads are not automatically removed.
 
-This release connects the existing CLI installer to the GUI. Writing paths were
-tested with fake devices, not through a new live installation on the configured
-reference printer. The package uses HelixScreen by default and retains KlipperScreen, selectable
-in the Web UI. Wi-Fi and USB remain separate modules. USB has not yet been tested with a cable.
+This release connects the existing CLI installer to the GUI. Writing paths have automated checks and a fresh installation was tested on the reference printer. The package uses HelixScreen by default and retains KlipperScreen, selectable
+in the Web UI. Wi-Fi and USB remain separate modules. USB and wired LAN were tested on the reference setup.
 Diagnostic logs may retain their original language. See ASSISTENT.md for the
 full technical scope and recovery notes.
 
