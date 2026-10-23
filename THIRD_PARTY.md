@@ -13,3 +13,7 @@ GPL-3.0-only applies to original KobraNest code, not to third-party components o
 The current binary package is not a complete corresponding-source collection for every Debian package and statically linked dependency. Before public binary distribution, complete the applicable source redistribution/provision requirements. This source repository is prepared separately from the binary release candidate for that reason.
 
 - uStreamer: GPL-3.0, https://github.com/pikvm/ustreamer; installed from Debian repositories during runtime preparation. Debian provides copyright notices and the source package.
+
+### Optional USB Ethernet modules
+
+The ASIX (GPL) and CDC-NCM (Dual BSD/GPL) modules were supplied by the user and load-tested on the reference S1. Exact build sources, vendor patches and build recipe were not supplied; the upstream Linux reference does not establish reproducibility of these particular binaries. Their hashes and kernel restriction are embedded in optional/wlan-dualbetrieb/install-printer.py. See optional/wlan-dualbetrieb/USB-LAN.md. This is an additional corresponding-source provisioning limitation.

@@ -63,3 +63,7 @@ HelixScreen-Netzwerktest: ping muss im Prozess-Suchpfad liegen. /usr/bin/ping ka
 Die MCU-TCP-Ports 7003 und 7005 sind mit SO_BINDTODEVICE an eth1 gebunden. WLAN dient der Verwaltung und ist kein MCU-Transport. Ohne LAN-Adapter oder Kabel gibt es keinen WLAN-Fallback. Der Pi muss die LAN-IP des Druckers verwenden; die WLAN-IP ist dafuer ungeeignet. Eine eigene Route zum Pi fuehrt Antworten ueber eth1.
 
 MCU TCP ports 7003 and 7005 are bound to eth1 using SO_BINDTODEVICE. Wi-Fi is for administration, never MCU transport. No wired link means no Wi-Fi fallback. Configure the Pi with the printer LAN address, not its Wi-Fi address. A dedicated route sends replies over eth1.
+
+## Zusätzliche USB-LAN-Treiber
+
+ASIX und CDC-NCM werden für den exakt getesteten S1-Kernel beim Start geladen. Ladetest erfolgreich; Hardwaretests mit den jeweiligen Adaptern stehen noch aus. Vorhandenes Realtek, usbnet und cdc_ether werden nicht ersetzt. Details und Herkunft: [USB-LAN.md](USB-LAN.md).

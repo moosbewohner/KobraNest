@@ -19,3 +19,7 @@ Partitionen: p1 env 32 KiB, p5 misc 256 KiB, p6/p7 boot je 16 MiB, p8/p9 system 
 BusyBox-init wird verwendet, weil der Referenzkernel keine passende systemd/cgroup-Umgebung bietet. Der originale Kernel und die U-Boot-Installation werden beibehalten. In boot_b werden nur beide BMP-Ressourcen und ihre Ressourcen-/FIT-Pruefsummen ersetzt. Kernel und DTB bleiben bytegleich.
 
 Die integrierte UVC-Kamera wird ueber uStreamer unterstuetzt und ist in der WebGUI konfigurierbar. Herstellerspezifische Zusatzdienste wurden nicht allgemein portiert. Ein Firmware- oder KlipperScreen-Update kann die geprueften Annahmen oder lokalen Anpassungen aendern. S1 Max und andere Kobra-Modelle sind mit diesem Paket nicht freigegeben.
+
+## Zusätzliche USB-Ethernet-Module / Additional modules
+
+ASIX and CDC-NCM: successful module-load test on the reference S1 kernel build 5.10.160 (2026-01-26). Actual adapter testing is pending. Loaded at boot only on the exact tested kernel build. Existing Realtek and built-in USB networking are preserved. No claim of universal USB-LAN compatibility. See [driver details](../optional/wlan-dualbetrieb/USB-LAN.md).

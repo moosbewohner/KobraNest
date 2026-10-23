@@ -37,3 +37,9 @@ See README for current validation limits.
 - Display, touch and a print test confirmed on the reference S1. Further unfinished ACE changes are excluded.
 - Fresh installations and recognized upgrades use the new runtime; existing settings are preserved and the previous runtime is backed up.
 - Matching source archive, ARM32 Debian trixie toolchain, asset dependencies and static OpenSSL/Zstandard link instructions included.
+
+## 2026-10-23 — optional USB Ethernet drivers
+
+- Add load-tested ASIX and CDC-NCM modules, gated by exact kernel build and file checksums.
+- Load before network setup; fail without blocking boot and preserve built-in Realtek.
+- Adapter-specific hardware validation remains pending.
