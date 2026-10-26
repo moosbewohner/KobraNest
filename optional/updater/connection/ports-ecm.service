@@ -1,0 +1,17 @@
+[Unit]
+StartLimitIntervalSec=60
+StartLimitBurst=10
+Description=USB Serial Bridge Script
+After=network.target syslog.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ports.sh
+User=root
+WorkingDirectory=/opt
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target

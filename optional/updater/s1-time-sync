@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+"""Read time from the configured Pi; use internal Moonraker in USB mode."""
+import email.utils,json,time,urllib.request
+from pathlib import Path
+for attempt in range(12):
+    try:
+        config=Path('/etc/s1-web.json')
+        if not config.exists():config=Path('/etc/s1-settings.json')
+        host=json.loads(config.read_text())['pi_ip']
+        mode=Path('/etc/s1-tunnel-mode')
+        if mode.exists() and mode.read_text().strip()=='usb' and Path('/etc/s1-serial-link.enabled').exists():host='127.0.0.1'
+        import ipaddress
+        host=str(ipaddress.IPv4Address(host))
+        opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open('http://'+host+':7125/server/info',timeout=4) as response:
+            stamp=email.utils.parsedate_to_datetime(response.headers['Date']).timestamp()
+        if not 1704067200<=stamp<4102444800:raise ValueError('Invalid Pi time')
+        time.clock_settime(time.CLOCK_REALTIME,stamp)
+        print('Time synchronized from configured Moonraker',flush=True)
+        break
+    except Exception as exc:
+        print('Time sync:',type(exc).__name__,flush=True)
+        time.sleep(5)

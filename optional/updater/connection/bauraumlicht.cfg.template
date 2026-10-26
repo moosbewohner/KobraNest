@@ -1,0 +1,17 @@
+# Include in the Raspberry Pi moonraker.conf.
+[power Bauraumlicht]
+type: http
+on_url: http://192.168.10.67:7126/light/on
+off_url: http://192.168.10.67:7126/light/off
+status_url: http://192.168.10.67:7126/light/status
+request_template:
+    {% if command != 'status' %}
+        {% do http_request.set_method('POST') %}
+        {% do http_request.set_body('') %}
+    {% endif %}
+    {% do http_request.send() %}
+response_template:
+    {% set response = http_request.last_response().json() %}
+    {response['state']}
+poll_interval: 3
+locked_while_printing: False

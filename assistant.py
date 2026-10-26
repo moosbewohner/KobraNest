@@ -181,6 +181,9 @@ class Assistant:
     def check_pi(self, c):
         run = lambda cmd: installer.run(c, cmd, timeout=20).strip()
         self.row('Raspberry Pi', 'ok', 'SSH verbunden · ' + run('uname -m'))
+        ecm=run('if test -e /sys/kernel/config/usb_gadget/klipper/configs/c.1/ecm.usb0; then echo ready; else echo missing; fi')
+        self.row('USB ECM', 'ok' if ecm=='ready' else 'warn',
+                 'ECM vorhanden.' if ecm=='ready' else 'Vor USB-Installation: auf dem Pi im Komplettpaket bash setup.sh --prepare-ecm starten, Pi neu starten, danach Drucker neu starten. Bei LAN nicht erforderlich.')
         docker = run('if sudo -n docker info >/dev/null 2>&1; then echo ready; else echo missing; fi')
         self.row('Build-Voraussetzung', 'ok' if docker == 'ready' else 'warn',
                  'Docker über sudo ohne Passwort verfügbar.' if docker == 'ready' else 'Docker oder sudo-Freigabe fehlt. Es wird nichts nachinstalliert.')
@@ -326,7 +329,8 @@ class Assistant:
                     current = installer.run(pi, 'python3 -c ' + shlex.quote(script), timeout=15).strip()
                 except RuntimeError:
                     current = 'unknown'
-                installer.require(current not in ('printing', 'paused'), 'Druck läuft oder ist pausiert. Keine Installation.')
+                installer.require(current in ('standby','complete','cancelled'), 'Druckstatus muss vor der Installation als Leerlauf bestaetigt sein.')
+                if action in ('prepare','stage','activate'):installer.require_ecm(pi,settings)
                 pi.close()
             # Only this worker can use the CLI bridge; the HTTP API admits one job.
             installer.connect = connect
@@ -371,7 +375,10 @@ class Assistant:
             else:
                 getattr(installer, action)(args, settings, work)
             if action == 'stage':
+                installer.setup_pi_updater(args, settings, work)
+                self.row('Pi-Updater', 'ok', 'Pi-Updatewerkzeuge eingerichtet; vorhandene Version bleibt erhalten.')
                 self.stage_addons(connect, settings, work)
+                installer.setup_serial_link(args, settings, work)
                 if ssh_key:
                     c = connect(settings['printer_ip'], 'root', None)
                     stage_ssh_key(c,ssh_key)
@@ -382,7 +389,7 @@ class Assistant:
                     import base64, shlex
                     template = base64.b64encode((PACKAGE / 'source/bauraumlicht.cfg.template').read_bytes()).decode()
                     script = (PACKAGE / 'source/install-pi-light.py').read_text(encoding='utf-8')
-                    result = installer.run(pi, 'python3 - ' + shlex.quote(settings['printer_ip']) + ' ' + shlex.quote(template), stdin=script, timeout=75)
+                    result = installer.run(pi, 'python3 - ' + shlex.quote(settings['printer_ip']) + ' ' + shlex.quote(template) + (' --usb' if settings['tunnel_mode']=='usb' else ''), stdin=script, timeout=75)
                     self.row('Pi-Bauraumlicht', 'ok', result.strip())
                     pi.close()
             if action == 'prepare':
@@ -437,6 +444,10 @@ class Assistant:
         installer.run(c, 'test -r /useremain/rinkhals/.current/tools.sh && mkdir -p ' + root + '/opt/kobrian-web-installer')
         for name in ('s1-web', 'index.html', 'install.py', 's1-return-to-stock', 's1-camera'):
             installer.put(c, root + '/opt/kobrian-web-installer/' + name, web / name)
+        # Signed update runtime is staged before WebUI installation.
+        installer.run(c, 'mkdir -p ' + root + '/opt/updater')
+        for name in ('RELEASE_VERSION', 'install.py', 'updater.py', 's1-update', 's1-time-sync', 'release.pub'):
+            installer.put(c, root + '/opt/updater/' + name, PACKAGE / 'optional/updater' / name)
         installer.run(c, 'chroot ' + root + ' /usr/bin/python3 /opt/kobrian-web-installer/install.py --root / --pi-ip ' + settings['pi_ip'])
         appdir = '/useremain/home/rinkhals/apps/kobrian-start'
         existing = installer.run(c, 'if test -e ' + appdir + '; then echo existing; else echo missing; fi').strip()

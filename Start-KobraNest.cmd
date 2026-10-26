@@ -1,6 +1,10 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+if exist KobraNest-Assistent.exe (
+  KobraNest-Assistent.exe
+  goto finished
+)
 if exist Kobrian-Assistent.exe (
   Kobrian-Assistent.exe
   goto finished

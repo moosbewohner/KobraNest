@@ -43,8 +43,6 @@ Der Code nutzt LibVNCClient aus LibVNCServer. Zum Neubau sind ein passender ARMv
 
 Bestehende Fremdlizenzen werden durch dieses Paket nicht ersetzt. Die Debian-Binaerdistribution enthaelt viele Komponenten mit eigenen Lizenzen. Fuer eine oeffentliche Weiterverteilung deren Quellcode- und Lizenzpflichten beachten; Paket und Viewer-Quellcode sind keine vollstaendige Quellcode-Sammlung aller Debian-Abhaengigkeiten.
 
-## Initial compatibility check
+## HelixScreen: offizielles Paket
 
-The initial check reads platform metadata, partition sizes and image headers rather than hashing whole firmware partitions against a global whitelist. It requires ARMv7 RV1106, Linux 5.10, original slot A, SquashFS, a FIT boot image, the documented partition sizes, the expected UART/display devices and the existing data mount/boot-control tool. Incompatible layouts and mounted slot B are still rejected.
-
-This does not establish universal compatibility with every firmware or model. Backup files and uploaded images retain their SHA-256 checks. Before activation, live partitions must still match this device's own backup (apart from the already validated misc-padding exception). Flash readback is checked, and stock A must remain unchanged from its pre-write value.
+Die aktuelle Version nutzt das unveränderte offizielle pi32-Programm aus v1.1.0-beta.11, Commit 3f4f594092d419f26866995478ba7c54a12378e2. Wrapper, Original-ZIP-Hash und Quellarchiv sind in `payload/helix-official.json` dokumentiert. `source/helixscreen-build/package.py --output CACHE` erstellt den Wrapper reproduzierbar; ein Neubau auf dem Pi ist nicht erforderlich. Die kleine Kompatibilitäts-Verknüpfung ändert den Programmcode nicht.

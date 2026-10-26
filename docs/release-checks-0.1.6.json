@@ -1,0 +1,9 @@
+{
+  "version": "0.1.6",
+  "date": "2026-10-26",
+  "automated_tests": 38,
+  "browser_checks": "DE/EN, desktop/mobile, controls, busy state, no overflow or page errors",
+  "windows_executable": "freshly built and localhost API smoke-tested",
+  "runtime_privacy_audit": "no device SSH material, locked generic root, generic Pi placeholder",
+  "hardware_scope": "Reference S1; no broad certification. New unified packages tested locally; ECM/kernel Pi-only reboot limitation remains."
+}

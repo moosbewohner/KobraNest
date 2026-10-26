@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+"""Maintain only the point-to-point ECM address; no default route or DNS."""
+from pathlib import Path
+import subprocess,time,signal
+running=True
+def stop(*_):
+ global running
+ running=False
+signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
+while running:
+ for net in Path('/sys/class/net').iterdir():
+  try:
+   if (net/'address').read_text().strip().lower()!='02:4b:53:31:00:02':continue
+   if 'cdc_ether' not in str((net/'device/driver').resolve()):continue
+   r=subprocess.run(['ip','-4','addr','show','dev',net.name],capture_output=True,text=True,timeout=4)
+   if '10.55.0.2/30' not in r.stdout:subprocess.run(['ip','addr','replace','10.55.0.2/30','dev',net.name],timeout=4)
+   if not (int((net/'flags').read_text().strip(),16)&1):subprocess.run(['ip','link','set',net.name,'up'],timeout=4)
+  except (OSError,ValueError,subprocess.TimeoutExpired):pass
+ time.sleep(2)

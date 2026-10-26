@@ -62,7 +62,7 @@ Der Tunnel-Umschalter ändert nur den Drucker. Ein Wechsel setzt eine passend vo
 
 ## 7 · Display und Kamera
 
-HelixScreen ist die Standardoberfläche; KlipperScreen bleibt als Alternative installiert. Die Auswahl im Bereich Druckerdisplay gilt sofort und für den nächsten Start. Nur im Leerlauf umschalten. Die getestete Paketversion enthält HelixScreen 1.1.0-beta.10; spätere ACE-Erweiterungen sind davon getrennt.
+HelixScreen ist die Standardoberfläche; KlipperScreen bleibt als Alternative installiert. Die Auswahl im Bereich Druckerdisplay gilt sofort und für den nächsten Start. Nur im Leerlauf umschalten. Die getestete Paketversion enthält HelixScreen 1.1.0-beta.11; spätere ACE-Erweiterungen sind davon getrennt.
 
 Die Kameraeinstellungen gelten für eine am Drucker angeschlossene Kamera. Wenn die Kamera direkt am Pi betrieben wird, die Druckerkamera bei Bedarf deaktivieren. Einstellungen am Pi werden dadurch nicht geändert.
 
@@ -86,6 +86,6 @@ Eine Schreibaktion erst nach passender Diagnose und mit YES sowie bestätigtem L
 
 ## Weiterführende Anleitungen
 
-- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.0)
+- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.6)
 - [Deutsch](ANLEITUNG-DE.md) · [English](ASSISTANT-EN.md)
 - [Recovery](RECOVERY.md) · [SSH](SSH.md)

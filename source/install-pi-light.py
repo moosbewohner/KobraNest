@@ -1,7 +1,9 @@
 import base64,ipaddress,json,os,re,subprocess,sys,time,urllib.request
 from pathlib import Path
-address=str(ipaddress.IPv4Address(sys.argv[1]))
-template=base64.b64decode(sys.argv[2]).decode().replace('192.168.10.67',address)
+usb='--usb' in sys.argv[3:]
+address='127.0.0.1' if usb else str(ipaddress.IPv4Address(sys.argv[1]))
+port=17126 if usb else 7126
+template=base64.b64decode(sys.argv[2]).decode().replace('192.168.10.67',address).replace(':7126/',':'+str(port)+'/')
 root=Path.home()/'printer_data/config'
 main=root/'moonraker.conf';light=root/'bauraumlicht.cfg'
 assert root.is_dir() and main.is_file() and not main.is_symlink() and not light.is_symlink(),'Unexpected Moonraker configuration path'
@@ -16,7 +18,7 @@ else:
     assert len(re.findall(r'^\s*\[power Bauraumlicht\]',old,re.M))==1,'Unexpected light configuration'
     new=old
     for key,endpoint in [('on_url','on'),('off_url','off'),('status_url','status')]:
-        new,count=re.subn(r'^'+key+r'\s*:.*$',key+': http://'+address+':7126/light/'+endpoint,new,flags=re.M)
+        new,count=re.subn(r'^'+key+r'\s*:.*$',key+': http://'+address+':'+str(port)+'/light/'+endpoint,new,flags=re.M)
         assert count==1,'Missing or duplicate '+key
 include='[include bauraumlicht.cfg]'
 updated=config if re.search(r'^\s*\[include bauraumlicht\.cfg\]\s*$',config,re.M) else config.rstrip()+'\n\n'+include+'\n'

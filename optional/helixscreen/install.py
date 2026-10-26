@@ -11,7 +11,7 @@ import signal
 import subprocess
 import tarfile
 
-RELEASE_SHA = '6cb694d4b5935e027de5fa08598ea42445087b9dc13e4ad799064243e6556f32'
+RELEASE_SHA = '361269dce1faa43e4acb5f06b1365490667b317d40f9a52e53e03586ecca29a3'
 SOURCE = Path(__file__).resolve().parent
 
 
@@ -26,12 +26,21 @@ def put(path, data, mode=0o755):
 def configuration(template, ip, language):
     result = json.loads(json.dumps(template))
     result.update(wizard_completed=True, language=language, sounds_enabled=False,
-                  ui_sounds_enabled=False, disable_sound=True, telemetry_enabled=False)
+                  ui_sounds_enabled=False, disable_sound=False, telemetry_enabled=False)
+    result.setdefault('sound',{})['pwm_channel']='0:0'
     result['input']['touch_device'] = '/dev/input/event0'
     result['display'].update(rotate=180, animations_enabled=False, screensaver_type='off',
                              sleep_sec=0, dim_sec=0, time_format=1)
     printer = result['printers']['default']
-    printer.update(name='Kobra S1', moonraker_host=ip, moonraker_port=7125, moonraker_api_key=False)
+    printer.update(wizard_completed=True, name='Kobra S1', moonraker_host=ip, moonraker_port=7125, moonraker_api_key=False)
+    # KobraNest drives GPIO117 through Moonraker, not a Klipper LED output.
+    leds=printer.setdefault('leds',{})
+    leds.update(strip='',selected_strips=[])
+    leds.setdefault('auto_state',{})['strips']=[]
+    hardware=printer.setdefault('hardware',{})
+    hardware['expected']=['heater_bed','extruder','controller_fan controller_fan',
+                          'filament_switch_sensor filament_runout_nozzle',
+                          'filament_switch_sensor filament_runout_rdm']
     widgets = [
         {'id':'printer_image','col':0,'row':0,'colspan':2,'rowspan':2,'enabled':True},
         {'id':'temp_graph','col':2,'row':0,'colspan':4,'rowspan':2,'enabled':True},
@@ -102,7 +111,7 @@ def install_acepro(root):
 
 
 
-LEGACY_RELEASE_SHAS = {'c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa819235b66'}
+LEGACY_RELEASE_SHAS = {'c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa819235b66','6cb694d4b5935e027de5fa08598ea42445087b9dc13e4ad799064243e6556f32'}
 
 
 def validate_runtime(root, destination):
@@ -183,6 +192,36 @@ def install_release(root, archive):
     return destination
 
 
+def migrate_kobranest_settings(settings):
+    """Repair legacy KobraNest defaults without assigning sensor roles or moving widgets."""
+    saved=json.loads(settings.read_text());before=json.dumps(saved,sort_keys=True)
+    active=saved.get('active_printer_id','default');profile=saved.get('printers',{}).get(active,{})
+    if saved.get('wizard_completed') and profile:profile['wizard_completed']=True
+    if saved.get('disable_sound'):
+        saved.update(disable_sound=False,sounds_enabled=False,ui_sounds_enabled=False)
+    saved.setdefault('sound',{})['pwm_channel']='0:0'
+    hardware=profile.get('hardware',{});snapshot=hardware.get('last_snapshot',{})
+    if isinstance(snapshot.get('leds'),list) and 'output_pin caselight' not in snapshot['leds']:
+        def has_power(node):
+            if isinstance(node,dict):return node.get('device')=='Bauraumlicht' or any(has_power(v) for v in node.values())
+            if isinstance(node,list):return any(has_power(v) for v in node)
+            return False
+        if has_power(profile.get('panel_widgets',{})):
+            leds=profile.get('leds',{})
+            if leds.get('strip')=='output_pin caselight':leds['strip']=''
+            for key in ('selected','selected_strips'):
+                if isinstance(leds.get(key),list):leds[key]=[v for v in leds[key] if v!='output_pin caselight']
+            auto=leds.get('auto_state',{})
+            if isinstance(auto.get('strips'),list):auto['strips']=[v for v in auto['strips'] if v!='output_pin caselight']
+    known=hardware.setdefault('expected',[])
+    for name in ('controller_fan controller_fan','filament_switch_sensor filament_runout_nozzle','filament_switch_sensor filament_runout_rdm'):
+        if name in snapshot.get('fans',[])+snapshot.get('filament_sensors',[]) and name not in known:known.append(name)
+    if json.dumps(saved,sort_keys=True)!=before:
+        backup=settings.with_name('settings.before-kobranest-usb-sound.json')
+        if not backup.exists():shutil.copy2(settings,backup)
+        put(settings,(json.dumps(saved,indent=2)+'\n').encode(),0o600)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', required=True)
@@ -212,7 +251,17 @@ def main():
         template = json.loads((destination/'config/settings.json.template').read_text())
         put(settings, (json.dumps(configuration(template, ip, args.language), indent=2)+'\n').encode(), 0o600)
     else:
-        json.loads(settings.read_text())  # Never reset user settings on reinstall.
+        saved=json.loads(settings.read_text())
+        active=saved.get('active_printer_id','default')
+        profile=saved.get('printers',{}).get(active,{})
+        if saved.get('wizard_completed') and profile and not profile.get('wizard_completed'):
+            profile['wizard_completed']=True
+            backup=root/'var/backups/kobrian-display/settings-before-profile-completion.json'
+            backup.parent.mkdir(parents=True,exist_ok=True)
+            if not backup.exists():shutil.copy2(settings,backup)
+            put(settings,(json.dumps(saved,indent=2)+'\n').encode(),0o600)
+
+    migrate_kobranest_settings(settings)
     install_custom_images(destination)
     validate_runtime(root, destination)
     service = root/'usr/local/sbin/s1-service'

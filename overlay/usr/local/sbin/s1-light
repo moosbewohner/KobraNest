@@ -64,4 +64,4 @@ class Server(HTTPServer):
 
 if __name__ == '__main__':
     initialize()
-    Server((SETTINGS['printer_ip'], 7126), Handler).serve_forever()
+    Server(('0.0.0.0', 7126), Handler).serve_forever()

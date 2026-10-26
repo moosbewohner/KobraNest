@@ -9,14 +9,16 @@ Suggested repository name: **KobraNest**. Original project code is licensed GPL-
 3. Inspect staged files, commit, add the exact GitHub repository URL as origin and push main.
 4. Keep private backups, device settings and SSH keys outside Git.
 
-## Binary release candidate
+## Binary release
 
-The separate `KobraNest-S1-v0.1.zip` is the complete tested-device installation candidate. The `.sha256` alongside it verifies the download. GitHub's automatic source ZIP is not that installer.
+The separate `KobraNest-S1-v0.1.6.zip` is the complete installation package tested on the reference device. The `.sha256` alongside it verifies the download. GitHub's automatic source ZIP is not that installer.
 
-Before attaching the binary candidate publicly, finish the corresponding-source and license provisioning for redistributed Debian packages and statically linked dependencies. `docs/BUILD.md` and THIRD_PARTY.md describe existing provenance and the remaining gap. Do not describe it as a broad hardware-certified stable release; the project has been tested on one reference printer.
+Track corresponding-source and license provisioning for redistributed Debian packages and statically linked dependencies. `docs/BUILD.md` and THIRD_PARTY.md describe existing provenance and the remaining gap. Do not describe it as a broad hardware-certified stable release; the project has been tested on one reference printer.
 
-Pending hardware confirmation: full cold start after the latest boot-logo and RTL8153B changes. Also track the wireless regulatory database signature warning.
+Known runtime limitation: ECM enumeration can require a printer restart after rebooting only the Pi. The project remains tested on a reference S1; this is not broad hardware certification.
 
 Public repository: https://github.com/moosbewohner/KobraNest
 
-The complete binary preview is published separately as release v0.1.0. The source-provisioning gap above remains documented; publishing the preview does not resolve it.
+The complete installer and signed update/setup assets are published together as release v0.1.6. The source-provisioning gap above remains documented; publishing the preview does not resolve it.
+
+Signed releases: build optional/updater/build.py, then build_complete.py. Never commit private signing keys. The workflow creates drafts and requires an explicitly configured signing secret. The Windows executable must be rebuilt whenever assistant.py/installer.py/recovery.py change. Publish the complete installer, complete setup ZIP, both TARs, hashes and signed catalog together.

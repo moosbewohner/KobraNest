@@ -62,6 +62,11 @@ config = root / 'etc/s1-web.json'
 if not config.exists():
     settings = {'pi_ip': pi_ip, 'port': a.port, 'setup_required': True}
     put(config, (json.dumps(settings, indent=2) + '\n').encode(), 0o600)
+# Install signed KobraNest updater
+import subprocess
+updater_source=source.parent/'updater'
+if (updater_source/'install.py').is_file():
+    subprocess.run(['/usr/bin/python3',str(updater_source/'install.py'),'--root',str(root)],check=True)
 os.sync()
 if a.start:
     os.kill(1, signal.SIGHUP)

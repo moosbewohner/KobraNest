@@ -1,5 +1,7 @@
 Eine aktuelle zusammenhängende Anleitung für Windows und Linux steht in [ANLEITUNG-DE.md](ANLEITUNG-DE.md).
 
+> USB/ECM 0.1.6: Vor dem PC-Assistenten bei altem USB-Gadget im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Danach Pi neu starten, warten bis er erreichbar ist, dann Drucker neu starten. / Before the PC assistant, prepare ECM on older gadgets using that command, restart Pi, wait for SSH, then restart printer. [Pi-Anleitung / Pi guide](PI.md).
+
 [Bebilderte Anleitung / Illustrated guide](BEBILDERT-DE.md)
 
 ## Erforderliche Vorarbeiten: Rinkhals und Klipper-Tunneling
@@ -106,7 +108,7 @@ am Referenzaufbau getestet. Die Grundinstallation wurde inzwischen über den Ass
 ## Windows-Build
 
 Python 3.13, PyInstaller 6.22.3, onedir/console. Build aus dem Paketordner:
-`pyinstaller --onedir --name Kobrian-Assistent assistant.py`.
+`pyinstaller --onedir --name KobraNest-Assistent assistant.py`.
 EXE und _internal neben assistant.py legen. Die EXE verwendet die Paketdateien
 neben sich. Nicht digital signiert. Lizenztexte unter docs/windows-licenses.
 
@@ -132,4 +134,6 @@ Current assistant: acknowledge the warning once, reuse passwords for this browse
 
 ## Technische Altbezeichnungen
 
-Die sichtbare Bezeichnung ist KobraNest. Der enthaltene ausführbare Dateiname `Kobrian-Assistent.exe`, interne Pfade wie `%LOCALAPPDATA%/Kobrian/Assistant/`, Dienst-/Ordnernamen mit `kobrian` und das Rinkhals-Bestätigungswort `KOBRIAN` bleiben technisch unverändert. Zum normalen Start immer `Start-KobraNest.cmd` verwenden; Pfade und Befehle aus der Anleitung nicht eigenständig umbenennen.
+Die sichtbare Bezeichnung ist KobraNest. Die ausführbare Datei heißt `KobraNest-Assistent.exe`. Interne Pfade wie `%LOCALAPPDATA%/Kobrian/Assistant/`, Dienst-/Ordnernamen mit `kobrian` bleiben technisch unverändert. Zum normalen Start immer `Start-KobraNest.cmd` verwenden; Pfade und Befehle aus der Anleitung nicht eigenständig umbenennen.
+
+Weitere Aktualisierungen / Further updates: [KobraNest Updates](UPDATES.md).

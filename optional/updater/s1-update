@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+import sys
+sys.path.insert(0,'/usr/local/lib/kobranest-update')
+from updater import main
+try:main()
+except Exception as error:
+    print('Update failed:',error,file=sys.stderr)
+    sys.exit(1)

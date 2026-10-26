@@ -1,0 +1,66 @@
+#!/usr/bin/python3
+import subprocess,time,fcntl,signal,sys,os
+from pathlib import Path
+sys.path.insert(0,'/usr/local/lib/kobranest-serial-link')
+import serial_settings as settings
+lock=open('/run/s1/serial-link.lock','w');fcntl.flock(lock,fcntl.LOCK_EX)
+stopping=False;child=None;current=None;next_start=0;announced=False;last_moonraker=settings.load()['moonraker_enabled'];retry_update=0
+
+def stop(*args):
+ global stopping
+ stopping=True
+for sig in (signal.SIGTERM,signal.SIGINT):signal.signal(sig,stop)
+def terminate():
+ global child,announced
+ if child is not None:
+  if child.poll() is None:
+   child.terminate()
+   try:child.wait(3)
+   except subprocess.TimeoutExpired:child.kill();child.wait()
+  child=None
+ for name in ('serial-link.pid','serial-link-active.json','serial-link-control'):Path('/run/s1/'+name).unlink(missing_ok=True)
+ announced=False
+def control(operation,forward=None):
+ args=['ssh','-S','/run/s1/serial-link-control','-O',operation]
+ if forward:args+=list(forward)
+ args+=[settings.peer()['pi_user']+'@kobranest-pi-serial']
+ return subprocess.run(args,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=5).returncode==0
+def forwards(v):
+ args=settings.command(v)
+ return {(args[i],args[i+1]) for i in range(len(args)-1) if args[i] in ('-L','-R')}
+def announce(value):
+ global last_moonraker,announced
+ settings.atomic(Path('/run/s1/serial-link-active.json'),{'settings':value,'pid':child.pid});announced=True
+ if last_moonraker!=value['moonraker_enabled']:
+  for proc in Path('/proc').iterdir():
+   if not proc.name.isdigit():continue
+   try:
+    args=(proc/'cmdline').read_bytes().split(b'\0')
+    if len(args)>1 and args[1] in (b'/usr/local/sbin/s1-helix',b'/usr/local/sbin/s1-gui'):os.kill(int(proc.name),signal.SIGTERM)
+   except OSError:pass
+  last_moonraker=value['moonraker_enabled']
+try:
+ while not stopping:
+  settings.expire();value=settings.load();enabled=Path('/etc/s1-serial-link.enabled').exists() and Path('/etc/s1-tunnel-mode').read_text().strip()=='usb'
+  if not enabled:terminate()
+  if child is not None and child.poll() is not None:terminate();next_start=time.monotonic()+3
+  if child is not None and current!=value:
+   if not announced:terminate();next_start=time.monotonic()+1
+   elif time.monotonic()>=retry_update:
+    added=[];ok=True
+    for forward in sorted(forwards(value)-forwards(current)):
+     if control('forward',forward):added.append(forward)
+     else:ok=False;break
+    if not ok:
+     for forward in added:control('cancel',forward)
+     retry_update=time.monotonic()+4
+    else:
+     for forward in sorted(forwards(current)-forwards(value)):control('cancel',forward)
+     current=value;announce(value)
+  if enabled and child is None and time.monotonic()>=next_start:
+   current=value;child=subprocess.Popen(settings.command(value),stdin=subprocess.DEVNULL)
+   Path('/run/s1/serial-link.pid').write_text(str(child.pid));next_start=time.monotonic()+4
+  if child is not None and child.poll() is None and not announced and Path('/run/s1/serial-link-control').exists():
+   if control('check'):announce(current)
+  time.sleep(1)
+finally:terminate()

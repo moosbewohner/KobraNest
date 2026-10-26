@@ -1,5 +1,7 @@
 # KobraNest setup assistant
 
+> USB/ECM 0.1.6: Vor dem PC-Assistenten bei altem USB-Gadget im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Danach Pi neu starten, warten bis er erreichbar ist, dann Drucker neu starten. / Before the PC assistant, prepare ECM on older gadgets using that command, restart Pi, wait for SSH, then restart printer. [Pi-Anleitung / Pi guide](PI.md).
+
 [Bebilderte Anleitung / Illustrated guide](ILLUSTRATED-EN.md)
 
 ## Required preparation: Rinkhals and Klipper tunneling
@@ -69,4 +71,6 @@ Current assistant: acknowledge the warning once, reuse passwords for this browse
 
 ## Legacy technical names
 
-The product name is KobraNest. The bundled executable `Kobrian-Assistent.exe`, internal paths such as `%LOCALAPPDATA%/Kobrian/Assistant/`, service/directory names containing `kobrian`, and the Rinkhals confirmation word `KOBRIAN` keep their existing technical names. Use `Start-KobraNest.cmd` to launch the assistant. Do not rename paths or commands from the instructions.
+The product name is KobraNest. The executable is `KobraNest-Assistent.exe`. Internal paths such as `%LOCALAPPDATA%/Kobrian/Assistant/`, service/directory names containing `kobrian` keep their existing technical names. Use `Start-KobraNest.cmd` to launch the assistant. Do not rename paths or commands from the instructions.
+
+Weitere Aktualisierungen / Further updates: [KobraNest Updates](UPDATES.md).

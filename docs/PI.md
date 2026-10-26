@@ -1,69 +1,36 @@
-## Standard: USB OTG Serial für die MCUs
-
-Der Installationsassistent wählt standardmäßig USB. Auf dem Pi 4 muss das passende USB-Gadget bereits eingerichtet sein; siehe optional/usb-otg/README.md. Haupt-MCU: /dev/ttyGS0, zweite MCU: /dev/ttyGS1. Klipper-Benutzer braucht dialout-Zugriff. Die Netzwerkdienste mcu1/mcu2 und etwaige automatische Starts in Klippers ExecStartPre müssen für USB deaktiviert sein. Vor Änderungen sichern und nur im Leerlauf arbeiten. Einen vorhandenen funktionierenden Gadget-Aufbau erhalten.
-
-Im Assistenten kann vor der Sicherung alternativ die Netzwerk-Tunnelvariante ausgewählt werden. Die MCU-Verbindung läuft dann ausschließlich über kabelgebundenes LAN, ohne WLAN-Fallback. Nur für diese Variante die nachfolgend beschriebenen socat-Netzwerkdienste einrichten. Das Erzeugen von pi-config installiert oder aktiviert sie nicht automatisch.
-
-WLAN ist unabhängig von der gewählten MCU-Variante für HelixScreen, WebGUI und SSH erforderlich, sofern kein LAN verwendet wird.
-
-## Netzwerkadresse bei WLAN
-
-Für die Verwaltung über WLAN die bestehende Anycubic-WLAN-IP im Router für die WLAN-MAC reservieren. Display, WebGUI, SSH und Bauraumlicht dürfen diese Adresse verwenden. Für MCU-Netzwerk-Tunnel ist dagegen ein LAN-Adapter mit eigener LAN-IP erforderlich: Der Pi verbindet sich ausschließlich mit der LAN-IP auf Port 7003/7005. Die Listener sind an eth1 gebunden und weichen bei fehlendem Kabel nicht auf WLAN aus. LAN- und WLAN-Adresse müssen verschieden sein.
-
 # Raspberry Pi vorbereiten
 
-Das Paket setzt einen bereits funktionierenden Klipper/Moonraker-Aufbau fuer genau diesen Drucker voraus. Es installiert keine universelle printer.cfg und flasht keine MCUs. Die Haupt-MCU muss zum Klipper auf dem Pi passen.
+Ein bereits funktionierendes Rinkhals-Klipper/Moonraker-System und passendes MCU-Tunneling werden vorausgesetzt. KobraNest flasht keine MCU-Firmware und ersetzt keine `printer.cfg`.
+
+## Zwei Varianten
+
+- **USB (Standard):** zwei serielle MCU-Kanäle (`ttyGS0`, `ttyGS1`) und zusätzlich USB-Ethernet (ECM) für Moonraker, Licht und Fernzugänge. [USB-Anleitung / English](USB.md).
+- **LAN:** MCU-Verbindung ausschließlich über kabelgebundenes LAN zur LAN-IP des Druckers, Ports 7003/7005 (7007 für eine entsprechend vorbereitete dritte MCU). Kein WLAN-Fallback für MCU-Daten. Das Druckerdisplay benötigt bei dieser Variante Netzwerk zum Pi.
+
+`klipper.service` und MCU-Konfiguration bleiben erhalten. Ein älteres Gadget mit drei seriellen Kanälen muss einmalig auf zwei serielle Kanäle plus ECM vorbereitet werden. Der Assistent installiert bei USB nur den zusätzlichen `kobranest-serial-link.service`; er überschreibt die MCU-Dienste nicht. Bei fehlendem ECM vor der Installation im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Dabei werden `ports.sh` und `ports.service` gesichert und für den nächsten Start angepasst. Pi neu starten, Erreichbarkeit abwarten, danach Drucker neu starten. Keine laufende USB-Verbindung neu binden. Der Pi-SSH-Benutzer benötigt passwortloses sudo und darf nicht root sein. Bei ausschließlich LAN wird der serielle Zusatzdienst nicht eingerichtet.
+
+Für den vorgelagerten USB-/LAN-/Alle-MCU-Installer: [Kobra-S1-Lan-Tunnel](https://github.com/moosbewohner/Kobra-S1-Lan-Tunnel). Das USB-Projekt liegt unter [Kobra-S1/vanilla-klipper-swu](https://github.com/Kobra-S1/vanilla-klipper-swu). Die passende SWU muss vorher unter Rinkhals auf dem Drucker installiert sein.
 
 ## Bootstrap-Build
 
-`prepare` verwendet den Pi nur als Build-Rechner. Dessen SSH-Benutzer muss `sudo -n docker info` ausfuehren koennen. Eine bestehende Docker-Installation verwenden oder gemaess der Dokumentation der eigenen Pi-Distribution installieren. Der Installer installiert Docker nicht heimlich und veraendert keine vorhandenen Container.
+Der Pi wird beim Vorbereitungsschritt außerdem als Build-Rechner verwendet. Sein SSH-Benutzer muss `sudo -n docker info` ausführen können. Der Assistent richtet Docker nicht automatisch ein und verändert keine vorhandenen Container.
 
-## MCU-Tunnel
+## Moonraker und Bauraumlicht
 
-`python render_pi.py --settings settings.json --output pi-config` erzeugt mcu1.service, mcu2.service und bauraumlicht.cfg fuer die eigene IP-Adresse. Diese Dateien auf den Pi uebertragen.
+Die Übertragung der Lichtkonfiguration bleibt eine ausdrückliche Auswahl im Assistenten. Bei USB werden die URLs auf Pi-intern `127.0.0.1:17126` gesetzt, bei LAN auf die gewählte Drucker-IP:7126. Vorhandene Dateien werden gesichert; Moonraker wird nur im Leerlauf neu gestartet. Ohne Auswahl erfolgt keine automatische Änderung. Erwarteter Pi-Konfigurationsordner ist `~/printer_data/config`.
 
-Vorhandene gleichnamige Dienste zuerst sichern und die bisherigen Serial-Pfade pruefen. In den Dateien steht Haupt-MCU = /dev/ttyMCU1 und zweite MCU = /dev/ttyMCU2. Die PTYs werden mit dialout-Gruppe angelegt; der Klipper-Benutzer muss diese Gruppe verwenden duerfen.
-
-```sh
-sudo apt-get install socat
-sudo install -m 644 mcu1.service /etc/systemd/system/mcu1.service
-sudo install -m 644 mcu2.service /etc/systemd/system/mcu2.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now mcu1.service mcu2.service
-```
-
-Die vorhandenen, passenden MCU-Sektionen der printer.cfg muessen auf diese Serial-Pfade zeigen. Keine anderen MCU-Optionen blind ersetzen:
-
-```ini
-[mcu]
-serial: /dev/ttyMCU1
-
-# Im bereits vorhandenen Abschnitt der zweiten MCU:
-# serial: /dev/ttyMCU2
-```
-
-Ein bereits vorhandener Netzwerk-/USB-Tunneldienst darf nicht parallel dieselben PTYs oder MCU-Verbindungen beanspruchen. Dienste vor einem Wechsel sichern und gezielt abloesen. Die Druckerports 7003 und 7005 akzeptieren nur die konfigurierte Pi-IP.
-
-## Moonraker und Licht
-
-Im Assistenten kann bei Schritt 2 optional „Bauraumlicht-Konfiguration auf den Pi übertragen?“ aktiviert werden (standardmäßig aus). Die gewählte Drucker-IP wird übernommen, vorhandene geänderte Dateien werden mit `.kobrian-backup-…` gesichert und Moonraker wird nur im Leerlauf neu gestartet. Erwarteter Pi-Konfigurationsordner: `~/printer_data/config`. Abweichende oder mehrdeutige Lichtdefinitionen werden nicht automatisch ersetzt. Die Tunnelkonfiguration wird nicht geändert. Ohne Zustimmung erfolgt keine Übertragung.
-
-Für die manuelle Einrichtung: bauraumlicht.cfg in den eigenen Moonraker-Konfigurationsordner legen und in moonraker.conf einmal einbinden:
+Die Datei wird einmal in `moonraker.conf` eingebunden:
 
 ```ini
 [include bauraumlicht.cfg]
 ```
 
-Der Abschnitt [authorization] muss den Drucker in trusted_clients erlauben, falls noch kein passender Bereich eingetragen ist. Vorhandene Einstellungen erhalten; nur die eigene Drucker-IP hinzufuegen. Der Installer erzeugt keine allgemeinen Freigaben und verteilt keine API-Schluessel.
+Über USB kommen die Moonraker-Verbindungen vom Loopback-Interface. Bei LAN muss `trusted_clients` den Drucker passend zulassen. Vorhandene Zugriffsregeln erhalten. Druckaufträge oder MCU-Verbindungen werden durch den zusätzlichen SSH-Dienst nicht neu konfiguriert.
 
-Moonraker auf Port 7125 starten bzw. nach Konfigurationsaenderung im Leerlauf neu starten:
+## Neustart und Kamera
 
-```sh
-sudo systemctl restart moonraker
-```
+Wird nur der Pi neu gestartet, kann anschließend ein Druckerneustart nötig sein, damit USB wieder erkannt wird. Diese Einschränkung betrifft bereits den bisherigen Rinkhals-USB-Aufbau.
 
-Fuer den Druckbetrieb muss der Moonraker-Port vom Druckernetz erreichbar sein. Die lokale Boot-Bestaetigung prueft ein beschreibbares Debian-Rootfs, SSH und entweder die lokale Display-Oberflaeche oder den lokalen Webdienst. Ein fehlender Pi, Tunnel oder LAN-Adapter allein loest keinen Stock-Fallback aus. Ein fehlendes Lichtgeraet vor dem ersten Debian-Start ist erwartbar, weil dessen HTTP-Endpunkt erst dann startet.
+Die Kamera kann direkt am Pi bleiben; ihre Konfiguration wird nicht verändert. Ohne eigenes Druckernetzwerk steht die Druckerkamera nicht zur Verfügung. [Alle USB-Weiterleitungen](USB.md).
 
-Nach dem S1-Neustart gegebenenfalls in KlipperScreen/Mainsail/Fluidd FIRMWARE_RESTART ausfuehren. Es ist kein automatischer Neustart von Klipper waehrend laufender Druckauftraege vorgesehen.
-
-Bei Installation über WLAN erhält ein zusätzlicher USB-LAN-Adapter (eth1) eine eigene Adresse per DHCP. Die WLAN-Adresse bleibt erhalten; LAN und WLAN dürfen nicht dieselbe IP bekommen. Die LAN-Adresse kann im Router separat reserviert werden.
+Die alten generierten `pi-config/mcu1.service` und `mcu2.service` bleiben als manuelle Vorlagen für bestehende LAN-Aufbauten enthalten; sie werden nicht automatisch installiert. Für neue MCU-Tunnel den oben verlinkten gemeinsamen Installer verwenden.

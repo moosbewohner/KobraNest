@@ -14,3 +14,4 @@ release-assets/
 known_hosts*
 *private*key*
 .env
+optional/updater/packages/

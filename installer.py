@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Conservative installer for the one verified Kobra S1 firmware layout."""
+import re
 import argparse
 import base64
 import getpass
@@ -171,6 +172,8 @@ def settings(path):
 
 def verify_package():
     require(not sys.flags.optimize,'Do not run this installer with python -O')
+    for name in ('payload/rootfs-armhf.tar.gz','payload/helixscreen-kobranest-armhf.tar.gz','payload/fb-vnc-viewer'):
+        require((PACKAGE/name).is_file(),'Complete installer required; source ZIP lacks runtime payload: '+name)
     manifest=PACKAGE/'SHA256SUMS.txt';require(manifest.exists(),'Package manifest missing')
     for line in manifest.read_text(encoding='utf-8').splitlines():
         expected,name=line.split('  ',1);p=PACKAGE/name
@@ -248,6 +251,9 @@ def stock_network(c,host,root=None):
 
 def prepare(args,s,work):
     require(not (work/'device.json').exists(),'Device backup already exists; preserve it, use another --work directory')
+    pi=connect(s['pi_ip'],args.builder_user,work/'builder_known_hosts')
+    try:require_ecm(pi,s)
+    finally:pi.close()
     c=connect(s['printer_ip'],'root',work/'stock_known_hosts','rockchip')
     try:
         inspect(c);stock_network(c,s['printer_ip']);run(c,'test ! -e '+BASE)
@@ -288,6 +294,37 @@ def device(work,s):
     m['misc_reference']=misc_reference((work/'backup/p5.img').read_bytes())
     return m
 
+def require_ecm(pi, s):
+    if s.get('tunnel_mode','usb')!='usb':return
+    ready=run(pi,'if test -e /sys/kernel/config/usb_gadget/klipper/configs/c.1/ecm.usb0; then echo ready; else echo missing; fi',timeout=15).strip()
+    require(ready=='ready','USB ECM fehlt. Auf dem Pi im Komplettpaket bash setup.sh --prepare-ecm ausfuehren; Pi neu starten, dann Drucker neu starten. Anschliessend Geraete erneut pruefen. / Prepare ECM on Pi first; see docs/PI.md.')
+
+
+def setup_pi_updater(args, s, work):
+    """One-time Pi updater installation using the existing trusted Pi login."""
+    pi = connect(s['pi_ip'], args.builder_user, work/'builder_known_hosts')
+    directory = '/tmp/kobranest-updater-' + uuid.uuid4().hex
+    try:
+        run(pi, 'mkdir -m 700 ' + directory)
+        for name in ('RELEASE_VERSION', 'install.py', 'updater.py', 's1-update', 'release.pub'):
+            put(pi, directory+'/'+name, PACKAGE/'optional/updater'/name, 0o644)
+        result = run(pi, 'sudo -n /usr/bin/python3 ' + directory + '/install.py --root / --platform pi --if-missing', timeout=30)
+        print(result.strip())
+        release=(PACKAGE/'optional/updater/RELEASE_VERSION').read_text().strip()
+        installed=json.loads(run(pi,'sudo -n /usr/local/sbin/s1-update status',timeout=15))
+        require(installed.get('platform')=='pi','Pi updater platform mismatch')
+        if tuple(map(int,installed['current'].split('.')))<tuple(map(int,release.split('.'))):
+            archive=PACKAGE/'optional/updater/packages'/('KobraNest-pi-update-'+release+'.tar.gz')
+            require(archive.is_file(),'Signed Pi update missing from installer')
+            put(pi,directory+'/pi-update.tar.gz',archive,0o644)
+            print(run(pi,'sudo -n /usr/local/sbin/s1-update stage --package '+directory+'/pi-update.tar.gz',timeout=60).strip())
+            print(run(pi,'sudo -n /usr/local/sbin/s1-update apply --confirmation YES',timeout=60).strip())
+    finally:
+        # directory is a generated fixed-prefix UUID, never a user supplied path.
+        try:run(pi, 'rm -rf -- ' + shlex.quote(directory))
+        finally:pi.close()
+
+
 def stage_display(c,s):
     """Populate the inactive root with both supported display interfaces."""
     put(c,ROOT+'/usr/local/share/s1-splash/kobrian.bgrx',PACKAGE/'payload/kobranest.bgrx')
@@ -312,7 +349,53 @@ def stage_display(c,s):
     require(s.get('tunnel_mode','usb') in ('usb','network'),'Invalid MCU transport')
     put(c,ROOT+'/etc/s1-tunnel-mode',s.get('tunnel_mode','usb')+'\n',0o644)
 
+    serial_directory=ROOT+'/opt/kobranest-serial-installer'
+    run(c,'mkdir -p '+serial_directory)
+    for name in ('install-printer.py','serial_settings.py','s1-serial-link','prepare-klipperscreen.py'):
+        put(c,serial_directory+'/'+name,PACKAGE/'optional/updater/connection'/name,0o755)
+    run(c,'chroot '+ROOT+' /usr/bin/python3 /opt/kobranest-serial-installer/install-printer.py --root /',timeout=60)
+
     stage_wifi(c,s)
+
+
+def setup_serial_link(args,s,work,printer_client=None):
+    """Prepare per-device keys and the restricted Pi service for the existing USB gadget."""
+    if s.get('tunnel_mode','usb')!='usb':return
+    require(re.fullmatch(r'[a-z_][a-z0-9_-]*[$]?',args.builder_user) is not None,'Invalid Pi account')
+    owned=printer_client is None
+    c=printer_client or connect(s['printer_ip'],'root',work/'stock_known_hosts','rockchip')
+    pi=connect(s['pi_ip'],args.builder_user,work/'builder_known_hosts')
+    directory='/tmp/kobranest-serial-'+uuid.uuid4().hex
+    try:
+        require_ecm(pi,s)
+        run(pi,'test -c /dev/ttyGS0 && test -c /dev/ttyGS1 && test -x /usr/sbin/sshd && sudo -n true',timeout=15)
+        transport='ecm'  # Current KobraNest setup uses the new two-ACM + ECM ports.sh.
+        key=ROOT+'/root/.ssh/kobranest_serial'
+        run(c,'mkdir -p '+ROOT+'/root/.ssh && chmod 700 '+ROOT+'/root/.ssh && if test ! -s '+key+'; then chroot '+ROOT+' /usr/bin/ssh-keygen -q -t ed25519 -N '+shlex.quote('')+' -f /root/.ssh/kobranest_serial; fi')
+        public=run(c,'cat '+key+'.pub').strip()
+        require(public.startswith('ssh-ed25519 '),'Unexpected serial public key')
+        host_key=run(pi,'cat /etc/ssh/ssh_host_ed25519_key.pub').strip()
+        require(host_key.startswith('ssh-ed25519 '),'Pi Ed25519 host key missing')
+        run(pi,'mkdir -m 700 '+directory)
+        for name in ('install-pi.py',):
+            put(pi,directory+'/'+name,PACKAGE/'optional/updater/connection'/name,0o600)
+        put(pi,directory+'/printer.pub',public+'\n',0o600)
+        print(run(pi,'sudo -n python3 '+directory+'/install-pi.py --pi-user '+shlex.quote(args.builder_user)+' --key '+directory+'/printer.pub --transport '+transport,timeout=75).strip())
+        peer={'pi_user':args.builder_user,'transport':transport}
+        if transport=='ecm':
+            put(c,ROOT+'/usr/local/sbin/s1-usb-ecm',PACKAGE/'optional/updater/connection/s1-usb-ecm',0o755)
+            put(c,ROOT+'/etc/s1-usb-ecm.enabled','enabled\n',0o600)
+            line='::respawn:/usr/local/sbin/s1-usb-ecm >>/var/log/s1-usb-ecm.log 2>&1'
+            run(c,'grep -qF '+shlex.quote(line)+' '+ROOT+'/etc/inittab || printf '+shlex.quote('%s\n')+' '+shlex.quote(line)+' >>'+ROOT+'/etc/inittab')
+        put(c,ROOT+'/etc/s1-serial-peer.json',json.dumps(peer)+'\n',0o600)
+        put(c,ROOT+'/root/.ssh/kobranest_serial_known_hosts','kobranest-pi-serial '+host_key+'\n',0o600)
+        put(c,ROOT+'/etc/s1-serial-link.enabled','enabled\n',0o600)
+        print('USB forwarding prepared with a new device-local key. Pi MCU services and gadget script unchanged.')
+    finally:
+        try:run(pi,'rm -f '+directory+'/install-pi.py '+directory+'/transport.py '+directory+'/printer.pub; rmdir '+directory,timeout=10)
+        except Exception:pass
+        pi.close()
+        if owned:c.close()
 
 
 def stage_wifi(c,s):
@@ -337,6 +420,7 @@ def stage_wifi(c,s):
         print('Installing WLAN dependencies from Debian repositories; Internet access required.')
         run(c,'python3 '+directory+'/run-inactive-packages.py',timeout=2200,progress=True)
     access=stock_network(c,s['printer_ip'],ROOT)
+    require(s.get('tunnel_mode','usb')!='network' or access['interface']=='eth1','LAN MCU tunnel requires the wired printer address; WLAN is not supported for MCU transport')
     run(c,'chroot '+ROOT+' /usr/bin/python3 /opt/kobrian-wifi-installer/install-printer.py --root / --address '+s['printer_ip']+'/'+str(s['prefix'])+' --gateway '+s['gateway']+' --primary-interface '+access['interface'],timeout=60)
     print('Network prepared:',access['interface'],'; saved WLAN copied on-device only' if access['saved_wifi'] else '; static LAN')
 
@@ -403,7 +487,9 @@ def stage(args,s,work):
                 put(c,ROOT+'/usr/local/sbin/s1-light',text,0o755)
             run(c,'chroot '+ROOT+' /usr/sbin/chpasswd',stdin='root:'+password+'\n')
             base_checkpoint(c,s,work,record=True)
+        setup_pi_updater(args,s,work)
         stage_display(c,s)
+        setup_serial_link(args,s,work,c)
         run(c,'chroot '+ROOT+' /bin/sh -n /usr/local/sbin/s1-boot && chroot '+ROOT+' /bin/sh -n /usr/local/sbin/s1-service && test -s '+ROOT+'/usr/local/share/s1-splash/kobrian.bgrx && test -x '+ROOT+'/opt/rockchip-bootcontrol/rk_ota')
         put(c,BASE+'/device.json',json.dumps(m,indent=2)+'\n')
         run(c,'sync')
@@ -460,7 +546,7 @@ def main():
     p.add_argument('action',choices=['verify','prepare','stage','activate','status','rollback'])
     p.add_argument('--settings',type=Path,default=Path('settings.json'))
     p.add_argument('--work',type=Path,default=Path('device-work'))
-    p.add_argument('--builder-user',default='pi',help='Pi SSH user with passwordless sudo docker access; used only by prepare')
+    p.add_argument('--builder-user',default='pi',help='Pi SSH user with passwordless sudo docker access; used by prepare and USB serial setup')
     args=p.parse_args();verify_package()
     if args.action=='verify':print('Package checksums OK');return
     s=settings(args.settings);work=args.work.resolve();work.mkdir(parents=True,exist_ok=True)

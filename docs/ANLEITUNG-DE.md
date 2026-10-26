@@ -1,5 +1,7 @@
 # KobraNest
 
+> USB/ECM 0.1.6: Vor dem PC-Assistenten bei altem USB-Gadget im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Danach Pi neu starten, warten bis er erreichbar ist, dann Drucker neu starten. / Before the PC assistant, prepare ECM on older gadgets using that command, restart Pi, wait for SSH, then restart printer. [Pi-Anleitung / Pi guide](PI.md).
+
 [Bebilderte Anleitung / Illustrated guide](BEBILDERT-DE.md)
 
 ## Erforderliche Vorarbeiten: Rinkhals und Klipper-Tunneling
@@ -16,11 +18,11 @@ Anleitungen und projektspezifische Informationen:
 
 Die verlinkten Anleitungen und ihre Kompatibilitätshinweise vorab lesen. KobraNest installiert diese Projekte oder Rinkhals nicht automatisch und flasht keine MCU-Firmware.
 
-Die sichtbare Projektbezeichnung ist KobraNest. Technische Altbezeichnungen in Pfaden, Dateinamen und dem Bestätigungswort bleiben aus Kompatibilitätsgründen erhalten.
+Die sichtbare Projektbezeichnung ist KobraNest. Technische Altbezeichnungen in Pfaden, Dateinamen und technischen Dienstbezeichnungen bleiben aus Kompatibilitätsgründen erhalten.
 
 # KobraNest S1 – Installation und Bedienung
 
-Stand: 23. Oktober 2026 · Version 0.1
+Stand: 26. Oktober 2026 · Version 0.1.6
 
 ## 1. Was KobraNest macht
 
@@ -205,7 +207,7 @@ Nur ohne laufenden oder pausierten Druck:
 
 Kein bloßer warmer Neustart für diesen Wechsel. Die KobraNest-Dateien bleiben erhalten.
 
-Zurück zu KobraNest: Im Originalsystem die Rinkhals-App **KobraNest starten** verwenden. Druckerleerlauf bestätigen und `KOBRIAN` eingeben. Die App startet einmalig Slot B. Sie ist nicht für automatischen Dauerstart gedacht.
+Zurück zu KobraNest: Im Originalsystem die Rinkhals-App **KobraNest starten** verwenden. In den App-Einstellungen beide Bestätigungen (`idle_confirmed` und `boot_confirmation`) auf `True` setzen und die App starten. Sie setzt beide danach zurück. Die App startet einmalig Slot B. Sie ist nicht für automatischen Dauerstart gedacht.
 
 Bei Startproblemen siehe [RECOVERY.md](RECOVERY.md). Keine Boot- oder Datenpartition auf Verdacht formatieren oder fremde Partitionssicherungen zurückschreiben.
 
@@ -236,3 +238,5 @@ Vor der Geräteprüfung muss der Warnhinweis zur Nutzung auf eigene Gefahr best�
 Die drei schreibenden Schritte werden im Assistenten jeweils mit YES bestätigt. Stillstandsbestätigung und Pi-Bereitschaft bleiben erhalten. Die Kommandozeileninstallation behält ihre bisherigen Bestätigungswörter.
 
 Optional kann ein öffentlicher SSH-Schlüssel in das Feld eingefügt oder als .pub-Datei geladen werden. Er wird in Schritt 2 für root in KobraNest unter /root/.ssh/authorized_keys eingetragen. Private Schlüssel werden abgelehnt. Die Passwortanmeldung bleibt möglich. Bereits bestehende öffentliche Schlüssel bleiben erhalten.
+
+Weitere Aktualisierungen / Further updates: [KobraNest Updates](UPDATES.md).

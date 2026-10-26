@@ -56,13 +56,13 @@ Keep your login details safe. Switch between German and English in the header.
 
 The dashboard shows Klipper/Pi status, temperatures, available RAM, free storage, addresses and MCU bridges. It also controls the chamber light. Example values in the image are not target values for your printer.
 
-The tunnel selector changes only the printer. Switching requires the Pi to be prepared accordingly and is not part of a normal first installation with an already working tunnel. Wi-Fi remains available for administration and the interface; LAN MCU tunneling requires wired LAN.
+The tunnel selector changes only the printer. Switching requires the Pi to be prepared accordingly and is not part of a normal first installation with an already working tunnel. Wi-Fi remains optional for administration. The USB variant can also carry the interface connection; LAN MCU tunneling requires wired LAN.
 
 ![6 · Use the dashboard – example view](images/anleitung/en-06-dashboard.png)
 
 ## 7 · Display and camera
 
-HelixScreen is the default; KlipperScreen remains installed as an alternative. Selecting a display interface applies immediately and persists after restart. Switch only while idle. The tested package includes HelixScreen 1.1.0-beta.10; later ACE extensions are separate.
+HelixScreen is the default; KlipperScreen remains installed as an alternative. Selecting a display interface applies immediately and persists after restart. Switch only while idle. The tested package includes HelixScreen 1.1.0-beta.11; later ACE extensions are separate.
 
 Camera settings apply to a camera connected to the printer. If your camera is connected directly to the Pi, disable the printer camera if appropriate. This does not change camera settings on the Pi.
 
@@ -86,6 +86,6 @@ Run a writing action only after an appropriate diagnosis, with YES and confirmed
 
 ## Further documentation
 
-- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.0)
+- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.6)
 - [Deutsch](ANLEITUNG-DE.md) · [English](ASSISTANT-EN.md)
 - [Recovery](RECOVERY.md) · [SSH](SSH.md)

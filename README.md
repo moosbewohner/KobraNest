@@ -12,9 +12,9 @@ Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional Kli
 
 ## Download
 
-**[Vollständiges Installationspaket mit Windows-EXE herunterladen / Download complete installer](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.0/KobraNest-S1-v0.1.zip)**
+**[Vollständiges Installationspaket mit Windows-EXE herunterladen / Download complete installer](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.6/KobraNest-S1-v0.1.6.zip)**
 
-[Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.0) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.0/KobraNest-S1-v0.1.zip.sha256)
+[Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.6) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.6/KobraNest-S1-v0.1.6.zip.sha256)
 
 ZIP vollständig entpacken, dann **Start-KobraNest.cmd** starten. `_internal` muss daneben bleiben. / Extract the complete ZIP, then run **Start-KobraNest.cmd**. Keep `_internal` beside it.
 
@@ -48,9 +48,9 @@ KobraNest does not automatically install these projects or Rinkhals, and does no
 
 ## Installation
 
-Das vollständige Installationspaket **KobraNest-S1-v0.1.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.
+Das vollständige Installationspaket **KobraNest-S1-v0.1.6.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.
 
-Use the complete **KobraNest-S1-v0.1.zip** installation package and extract it first. GitHub's “Source code” ZIP is not the complete installer. Runtime archives and the Windows runtime are distributed separately as release assets.
+Use the complete **KobraNest-S1-v0.1.6.zip** installation package and extract it first. GitHub's “Source code” ZIP is not the complete installer. Runtime archives and the Windows runtime are distributed separately as release assets.
 
 - [Deutsche Installationsanleitung](docs/ANLEITUNG-DE.md)
 - [Windows / Linux assistant — English](docs/ASSISTANT-EN.md)
@@ -63,7 +63,7 @@ Use the complete **KobraNest-S1-v0.1.zip** installation package and extract it f
 ## Funktionen / Features
 
 - HelixScreen als Standard; KlipperScreen bleibt als Alternative erhalten.
-- MCU-Verbindung per USB OTG Serial (Standard) oder Netzwerk; Pi-Konfiguration separat.
+- MCU-Verbindung per USB OTG Serial (Standard) oder Netzwerk; USB-ECM mit beschränktem SSH-Dienst und Weiterleitungen; vollständige Pi-Einrichtung enthalten.
 - WLAN als üblicher Installations- und Verwaltungszugang; zusätzliches LAN per DHCP bei WLAN-Installation.
 - Weboberfläche und Assistent auf Deutsch und Englisch.
 - Bootlogo, Ladebalken, Startmelodie und Bauraumlicht an GPIO 117.
@@ -77,9 +77,9 @@ Die Erstinstallation und der laufende Betrieb wurden auf **einem Referenz-S1** g
 
 Installation and operation have been tested on **one reference S1**. Other devices and firmware revisions are not validated. The initial check validates the RV1106/ARMv7 platform, Linux 5.10, slot A, documented partition layout, image formats and required devices, without a byte-exact firmware whitelist. Backups, transfer integrity and flash readback remain checksum-verified. S1 Max and other printer models are not supported automatically.
 
-Bekannte offene Punkte: vollständige Kaltstartbestätigung der letzten Logo-/LAN-Änderungen; Signaturkompatibilität der WLAN-Länderdatenbank. Der zusätzliche zweite LAN-Adapter war ein temporärer Hardwaretest und wird nicht automatisch dauerhaft eingerichtet.
+Bekannte Einschränkung: Nach einem alleinigen Pi-Neustart kann ein anschließender Druckerneustart nötig sein, damit ECM wieder erkannt wird. Der zusätzliche zweite LAN-Adapter bleibt ein Hardwaretest.
 
-Known pending checks: a full cold-start confirmation after the latest logo/LAN changes; compatibility of the wireless regulatory database signature. The second simultaneous Ethernet adapter was a temporary hardware test and is not configured persistently.
+Known limitation: restarting only the Pi can require a subsequent printer restart to recover ECM enumeration. A second simultaneous Ethernet adapter remains a hardware test.
 
 ## Warnhinweis / Warning
 
@@ -92,3 +92,11 @@ Use at your own risk. Improper use, incorrect operation and software defects may
 Eigener KobraNest-Code: **GPL-3.0-only**, siehe [LICENSE](LICENSE). Fremdsoftware behält ihre jeweiligen Lizenzen; siehe [THIRD_PARTY.md](THIRD_PARTY.md). Enthaltene Marken gehören ihren jeweiligen Inhabern. Keine Herstellerfreigabe oder Verbindung zu Anycubic, Debian oder Rinkhals wird behauptet.
 
 Original KobraNest code: **GPL-3.0-only**, see [LICENSE](LICENSE). Third-party components retain their own licenses. Trademarks belong to their respective owners; no vendor endorsement is claimed.
+
+## Updates / Aktualisierungen
+
+**Bestehende Installation / Existing installation:** [Komplettpaket 0.1.6](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.6/KobraNest-Komplett-0.1.6.zip). Auf dem Pi entpacken und `bash setup.sh --complete` ausführen, wenn USB/ECM verwendet wird. Das aktualisiert beide Geräte und ergänzt die Pi-/Drucker-Konfiguration. / Unpack on the Pi and run `bash setup.sh --complete` for USB/ECM; it updates both devices and configures the connection.
+
+Die einzelnen TAR-Dateien aktualisieren nur ihre jeweilige Plattform. Die Drucker-WebUI akzeptiert ausschließlich das Druckerpaket. Ein Pi-Paket wird direkt auf dem Pi installiert. / Individual TARs target one platform only. The printer WebUI cannot install Pi packages.
+
+[Update- und Migrationsanleitung / Update and migration guide](docs/UPDATES.md). HelixScreen verwendet weiterhin seinen eigenen Updater.

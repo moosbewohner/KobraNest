@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.6 — 2026-10-26
+
+- Unified public installer, signed platform updates and complete Pi/printer setup.
+- USB now uses two MCU serial channels plus ECM; explicit preparation for next boot, no live gadget rebind.
+- Complete setup configures restricted Pi SSH, per-device key, host-key pinning, internal Moonraker, chamber light and enabled forwards.
+- Accept valid Ed25519 public-key comments; retain structural key validation.
+- Guard incomplete updater APIs and missing optional USB helpers so the maintenance WebUI remains accessible.
+- Missing version metadata uses a marked repair bootstrap, then the signed target version; no fabricated installed release.
+- Preserve original klipper.service, MCU services, user settings, accounts and camera configuration.
+- Rebuilt Windows executable and DE/EN instructions; normal and illustrated guides remain separate.
+- Official HelixScreen v1.1.0-beta.11 with S1 defaults, native PWM sound support and ACE Pro panel for KlipperScreen.
+- Known limitation retained: a Pi-only reboot may require restarting the printer for ECM enumeration.
+
+## 2026-10-26: Signed KobraNest updates
+
+- Manual update checks, signed package download/upload, version and release-note display in DE/EN.
+- Idle/heater checks, file backups, health verification, rollback and interrupted-transaction recovery.
+- Separate manual Pi updates; no changes to personal settings, boot partitions or MCU firmware.
+- One-time bootstrap for existing installations and staging integration in installer source.
+
+
 ## Guided recovery
 
 - DE/EN read-only diagnosis, return to stock, archive for reinstall and own-backup slot-B restore.

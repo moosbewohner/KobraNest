@@ -1,0 +1,58 @@
+name: Signed KobraNest update
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version, for example 0.1.1
+        required: true
+      minimum_version:
+        description: Minimum installed version
+        default: 0.0.0
+        required: true
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Embed complete Pi setup
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          python3 -c 'import os,re; from pathlib import Path; v=os.environ["RELEASE_VERSION"]; assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+",v); Path("optional/updater/RELEASE_VERSION").write_text(v+"\n")'
+          python3 optional/updater/embed_pi_setup.py --source .
+      - name: Tests
+        run: |
+          python3 optional/updater/test_updater.py
+          python3 optional/updater/test_web_updates.py
+          python3 optional/updater/test_repair.py
+          python3 optional/updater/test_pi_setup.py
+          python3 optional/updater/test_complete.py
+          python3 -m unittest discover -s tests
+      - name: Sign packages
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          MINIMUM_VERSION: ${{ inputs.minimum_version }}
+          SIGNING_KEY: ${{ secrets.KOBRANEST_UPDATE_SIGNING_KEY }}
+        run: |
+          test -n "$SIGNING_KEY" || { echo 'Signing secret is not configured'; exit 1; }
+          python3 -c 'import re,os; assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+",os.environ["RELEASE_VERSION"]); assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+",os.environ["MINIMUM_VERSION"])'
+          key="$RUNNER_TEMP/kobranest-release.pem"
+          trap 'rm -f "$key"' EXIT
+          umask 077
+          printf '%s\n' "$SIGNING_KEY" > "$key"
+          openssl pkey -in "$key" -pubout -out "$RUNNER_TEMP/release.pub"
+          diff -w optional/updater/release.pub "$RUNNER_TEMP/release.pub"
+          python3 optional/updater/build.py --source . --out dist-updates --key "$key" --version "$RELEASE_VERSION" --minimum-version "$MINIMUM_VERSION" --base-url "https://github.com/$GITHUB_REPOSITORY/releases/download/v$RELEASE_VERSION"
+          python3 optional/updater/build_complete.py --source . --packages dist-updates --out dist-updates --key "$key"
+      - name: Create release draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          printf '%s\n' 'Signed KobraNest file update. See docs/UPDATES.md for bootstrap, supported components and rollback.' > "$RUNNER_TEMP/update-notes.md"
+          gh release create "v$RELEASE_VERSION" --draft --title "KobraNest $RELEASE_VERSION" --notes-file "$RUNNER_TEMP/update-notes.md" dist-updates/*.tar.gz dist-updates/*.zip dist-updates/*.zip.sig dist-updates/*.sha256 dist-updates/kobranest-update.json dist-updates/kobranest-update.json.sig
