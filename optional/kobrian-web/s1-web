@@ -285,7 +285,7 @@ def collect():
             'ports': tcp_status(), 'pi_ip': moonraker_host(), 'serial_link': serial_status(), 'printer': printer_state(), 'camera':camera_status(),
             'light': read('/sys/class/gpio/gpio117/value', 'unknown'),
             'stock_available': Path('/usr/local/sbin/s1-return-to-stock').is_file(),
-            'helix_available': Path('/opt/helixscreen/bin/helix-screen-fbdev').is_file(),
+            'helix_available': (Path('/opt/helixscreen/bin/helix-screen').is_file() or Path('/opt/helixscreen/bin/helix-screen-fbdev').is_file()),
             'klipperscreen_available': Path('/opt/KlipperScreen/screen.py').is_file()}
 
 

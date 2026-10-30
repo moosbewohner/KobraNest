@@ -115,8 +115,9 @@ LEGACY_RELEASE_SHAS = {'c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa8
 
 
 def validate_runtime(root, destination):
-    binary = destination/'bin/helix-screen-fbdev'
-    assert binary.is_file(), 'Framebuffer binary missing'
+    candidate_bin = destination/'bin/helix-screen'
+    binary = candidate_bin if candidate_bin.is_file() else destination/'bin/helix-screen-fbdev'
+    assert binary.is_file(), 'HelixScreen binary missing'
     command = ['/usr/bin/ldd', '/'+binary.relative_to(root).as_posix()]
     if root != Path('/'):
         command = [shutil.which('chroot') or '/usr/sbin/chroot', str(root)] + command
