@@ -11,7 +11,7 @@ Suggested repository name: **KobraNest**. Original project code is licensed GPL-
 
 ## Binary release
 
-The separate `KobraNest-S1-v0.1.6.zip` is the complete installation package tested on the reference device. The `.sha256` alongside it verifies the download. GitHub's automatic source ZIP is not that installer.
+The separate `KobraNest-S1-v0.1.8.zip` is the complete installation package tested on the reference device. The `.sha256` alongside it verifies the download. GitHub's automatic source ZIP is not that installer.
 
 Track corresponding-source and license provisioning for redistributed Debian packages and statically linked dependencies. `docs/BUILD.md` and THIRD_PARTY.md describe existing provenance and the remaining gap. Do not describe it as a broad hardware-certified stable release; the project has been tested on one reference printer.
 
@@ -19,6 +19,6 @@ Known runtime limitation: ECM enumeration can require a printer restart after re
 
 Public repository: https://github.com/moosbewohner/KobraNest
 
-The complete installer and signed update/setup assets are published together as release v0.1.6. The source-provisioning gap above remains documented; publishing the preview does not resolve it.
+The complete installer and signed update/setup assets are published together as release v0.1.8. The source-provisioning gap above remains documented; publishing the preview does not resolve it.
 
 Signed releases: build optional/updater/build.py, then build_complete.py. Never commit private signing keys. The workflow creates drafts and requires an explicitly configured signing secret. The Windows executable must be rebuilt whenever assistant.py/installer.py/recovery.py change. Publish the complete installer, complete setup ZIP, both TARs, hashes and signed catalog together.

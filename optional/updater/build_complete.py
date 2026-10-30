@@ -11,12 +11,13 @@ def main():
  spec=importlib.util.spec_from_file_location('complete_bundle',here/'complete.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
  module.validate_bundle(a.packages.parent if a.packages.name=='packages' and (a.packages.parent/'release.pub').exists() else _validation_root(here,a.packages))
  root='KobraNest-Komplett-'+version;items={}
- for name in ('RELEASE_VERSION','setup.sh','setup.py','complete.py','bootstrap.sh','install.py','repair.py','patch_web.py','s1-update','s1-time-sync','updater.py','release.pub'):
+ for name in ('RELEASE_VERSION','BRIDGE_VERSION','setup.sh','setup.py','complete.py','bootstrap.sh','install.py','repair.py','patch_web.py','s1-update','s1-time-sync','updater.py','release.pub'):
   items[root+'/'+name]=(here/name).read_bytes()
  for path in sorted((here/'connection').iterdir()):
   if path.is_file() and path.suffix!='.pyc' and path.name!='transport.py':items[root+'/connection/'+path.name]=path.read_bytes()
  for kind in ('pi','printer'):
   name='KobraNest-'+kind+'-update-'+version+'.tar.gz';items[root+'/packages/'+name]=(a.packages/name).read_bytes()
+ bridge=(here/'BRIDGE_VERSION').read_text().strip();name='KobraNest-printer-update-'+bridge+'.tar.gz';items[root+'/packages/'+name]=(a.packages/name).read_bytes()
  for name in ('kobranest-update.json','kobranest-update.json.sig'):
   items[root+'/packages/'+name]=(a.packages/name).read_bytes()
  items[root+'/LICENSE']=(a.source/'LICENSE').read_bytes()

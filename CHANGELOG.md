@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.8 — 2026-10-30: native HelixScreen layout compatibility
+
+- Merge PR #2: canonical `bin/helix-screen` is recognized by WebUI and runtime validation; older fbdev deployments remain supported.
+- Preserve the official file tree and stop injecting the fbdev compatibility link into newly packaged upstream archives.
+- Remove the artificial test-home from the S1 launcher; keep S1 integration outside the upstream program directory.
+- Preserve self-updated canonical installations during repair instead of downgrading to the bundled baseline. Move recognized legacy bookkeeping outside the upstream tree, with backups.
+- Printer-only bootstrap records 0.0.0 until the actual signed runtime is installed; fresh installer records its release only after staging the native display runtime.
+- Signed compatibility update 0.1.7 enables the 0.1.8 native launcher/helper update on existing clients. WebUI offers both in order; printer-only ZIP automates the sequence. No Pi reconfiguration needed.
+- Offline regression tests, real signed-chain validation and byte-for-byte archive comparison; no new on-device beta.14 validation is claimed.
+
 ## 0.1.6 — 2026-10-26
 
 - Unified public installer, signed platform updates and complete Pi/printer setup.

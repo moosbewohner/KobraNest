@@ -13,6 +13,7 @@ p.add_argument('--root', required=True)
 p.add_argument('--pi-ip', required=True)
 p.add_argument('--port', type=int, default=8080)
 p.add_argument('--start', action='store_true', help='Reread BusyBox init after installation')
+p.add_argument('--release-baseline', help='Internal fresh-install baseline after display runtime staging')
 a = p.parse_args()
 root = Path(a.root).resolve()
 pi_ip = str(ipaddress.IPv4Address(a.pi_ip))
@@ -66,7 +67,12 @@ if not config.exists():
 import subprocess
 updater_source=source.parent/'updater'
 if (updater_source/'install.py').is_file():
-    subprocess.run(['/usr/bin/python3',str(updater_source/'install.py'),'--root',str(root)],check=True)
+    command=['/usr/bin/python3',str(updater_source/'install.py'),'--root',str(root)]
+    if a.release_baseline:
+        assert a.release_baseline==(updater_source/'RELEASE_VERSION').read_text().strip(), 'Baseline must match staged release'
+        assert (root/'usr/local/sbin/s1-helix').is_file() and (root/'usr/local/lib/kobranest-display/layout.py').is_file(), 'Stage native display runtime before recording the full release'
+        command+=['--baseline',a.release_baseline]
+    subprocess.run(command,check=True)
 os.sync()
 if a.start:
     os.kill(1, signal.SIGHUP)

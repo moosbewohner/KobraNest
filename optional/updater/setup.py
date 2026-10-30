@@ -3,7 +3,7 @@
 import argparse,base64,io,ipaddress,json,os,re,shlex,shutil,subprocess,sys,tarfile,tempfile,time
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
-FILES=('RELEASE_VERSION','bootstrap.sh','install.py','repair.py','patch_web.py','s1-update','s1-time-sync','updater.py','release.pub')
+FILES=('RELEASE_VERSION','BRIDGE_VERSION','bootstrap.sh','install.py','repair.py','patch_web.py','s1-update','s1-time-sync','updater.py','release.pub')
 
 def printer_public_key(output):
  # OpenSSH may retain a trailing comment when deriving a public key with -y.

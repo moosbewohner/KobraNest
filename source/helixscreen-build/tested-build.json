@@ -5,7 +5,9 @@
   "official_asset": "https://github.com/prestonbrown/helixscreen/releases/download/v1.1.0-beta.11/helixscreen-pi32.zip",
   "official_asset_sha256": "f318adc869f20d7adb9a98ab3cb9decca16f3df5ee7c2338ea3531ea5c38a45d",
   "binary_sha256": "de14865176144462f17625e72f75a59294525e33a0b4a2c0b89060a0712c898c",
-  "archive_sha256": "361269dce1faa43e4acb5f06b1365490667b317d40f9a52e53e03586ecca29a3",
+  "archive_sha256": "10b99850874f2324573151497974b1547912042aeca6c763c9af6d12df41d094",
   "source_url": "https://codeload.github.com/prestonbrown/helixscreen/tar.gz/3f4f594092d419f26866995478ba7c54a12378e2",
-  "source_sha256": "966272c7891efd4331a4cbe99b65c57c8c6515ae2b6be7873f3e435b14ae7636"
+  "source_sha256": "966272c7891efd4331a4cbe99b65c57c8c6515ae2b6be7873f3e435b14ae7636",
+  "layout": "upstream-native; no added binary aliases",
+  "layout_validation": "local archive comparison and fixtures; not a new on-device beta.14 test"
 }

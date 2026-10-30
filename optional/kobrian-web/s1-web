@@ -74,6 +74,8 @@ except ImportError:
 def moonraker_host(): return serial_settings.moonraker_host(PI) if serial_settings else PI
 def serial_status():
     return serial_settings.status() if serial_settings else {'installed':False,'connected':False,'error':'Run complete Pi setup'}
+def helix_runtime_available(directory=Path('/opt/helixscreen')):
+    return any((directory/'bin'/name).is_file() for name in ('helix-screen','helix-screen-fbdev'))
 PAGE = Path(os.environ.get('KOBRIAN_WEB_PAGE', '/opt/kobrian-web/index.html')).read_bytes()
 OPENER = build_opener(ProxyHandler({}))
 SESSIONS = {}
@@ -285,7 +287,7 @@ def collect():
             'ports': tcp_status(), 'pi_ip': moonraker_host(), 'serial_link': serial_status(), 'printer': printer_state(), 'camera':camera_status(),
             'light': read('/sys/class/gpio/gpio117/value', 'unknown'),
             'stock_available': Path('/usr/local/sbin/s1-return-to-stock').is_file(),
-            'helix_available': (Path('/opt/helixscreen/bin/helix-screen').is_file() or Path('/opt/helixscreen/bin/helix-screen-fbdev').is_file()),
+            'helix_available': helix_runtime_available(),
             'klipperscreen_available': Path('/opt/KlipperScreen/screen.py').is_file()}
 
 

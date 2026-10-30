@@ -2,6 +2,22 @@ import importlib.util,io,json,subprocess,sys,tarfile,tempfile,unittest
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
 class PiSetupTests(unittest.TestCase):
+ def test_printer_bootstrap_does_not_claim_full_release(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp);marker=root/'etc/s1-boot-ready';marker.parent.mkdir();marker.write_text('1')
+   wrapper=root/'usr/local/sbin/s1-helix';wrapper.parent.mkdir(parents=True);wrapper.write_text('OLDER-WRAPPER')
+   subprocess.run([sys.executable,str(HERE/'install.py'),'--root',str(root),'--platform','printer'],check=True,capture_output=True)
+   info=json.loads((root/'usr/share/kobranest-update/version.json').read_text())
+   self.assertEqual(info['version'],'0.0.0');self.assertEqual(info['version_scope'],'updater-bootstrap');self.assertEqual(wrapper.read_text(),'OLDER-WRAPPER')
+ def test_fresh_full_baseline_tracks_native_files_for_future_edit_protection(self):
+  import hashlib
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp);marker=root/'etc/s1-boot-ready';marker.parent.mkdir();marker.write_text('1')
+   names=('usr/local/sbin/s1-helix','usr/local/lib/kobranest-display/layout.py')
+   for name in names:p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b'STAGED-NATIVE-CODE')
+   subprocess.run([sys.executable,str(HERE/'install.py'),'--root',str(root),'--platform','printer','--baseline',(HERE/'RELEASE_VERSION').read_text().strip()],check=True,capture_output=True)
+   info=json.loads((root/'usr/share/kobranest-update/version.json').read_text())
+   for name in names:self.assertEqual(info['files'][name],hashlib.sha256((root/name).read_bytes()).hexdigest())
  def test_existing_newer_pi_version_and_local_changes_preserved(self):
   with tempfile.TemporaryDirectory() as tmp:
    root=Path(tmp)

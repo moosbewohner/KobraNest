@@ -10,7 +10,7 @@ KEY=at('/usr/share/kobranest-update/release.pub')
 VERSION=at('/usr/share/kobranest-update/version.json')
 CONFIG=at('/etc/kobranest-update.json')
 ALLOW={
- 'printer':{'usr/local/sbin/s1-web','opt/kobrian-web/index.html','usr/local/sbin/s1-update','usr/local/lib/kobranest-update/updater.py'},
+ 'printer':{'usr/local/sbin/s1-web','opt/kobrian-web/index.html','usr/local/sbin/s1-update','usr/local/lib/kobranest-update/updater.py','usr/local/sbin/s1-helix','usr/local/lib/kobranest-display/layout.py'},
  'pi':{'usr/local/sbin/s1-update','usr/local/lib/kobranest-update/updater.py','usr/local/lib/kobranest-serial-link/transport.py','etc/systemd/system/kobranest-serial-link.service'},
 }
 MAX_PACKAGE=16*1024*1024
@@ -46,6 +46,7 @@ def status():
    except OSError:busy=False
   elif time.time()-job.get('time',0)>20:busy=False
  offer=read(STATE/'offer.json');staged=read(STATE/'staged.json')
+ if offer and version(offer['version'])<=version(installed()['version']):offer=None
  transaction=read(STATE/'transaction.json',{})
  return {'installed':True,'current':installed()['version'],'platform':installed()['platform'],'busy':busy,
          'job':job,'offer':offer,'staged':staged,'rollback_available':transaction.get('phase')=='committed',
@@ -87,6 +88,17 @@ def validate_offer(o):
  if version(installed()['version'])<version(o['minimum_version']):raise ValueError('An intermediate update is required')
  if version(o['version'])<=version(installed()['version']):return False
  return True
+
+def select_offer(catalog):
+ current=installed();kind=current['platform'];base=catalog.get(kind)
+ if not base:raise ValueError('No release for this system in catalog')
+ candidates=[base]+catalog.get(kind+'_updates',[])
+ if len(candidates)>16:raise ValueError('Too many release candidates')
+ eligible=[]
+ for offer in candidates:
+  if version(current['version'])<version(offer['minimum_version']):continue
+  if validate_offer(offer):eligible.append(offer)
+ return max(eligible,key=lambda o:version(o['version'])) if eligible else None
 def check():
  sync_clock()
  cfg=read(CONFIG,{});url=cfg.get('catalog_url','https://github.com/moosbewohner/KobraNest/releases/latest/download/kobranest-update.json')
@@ -96,9 +108,7 @@ def check():
   if error.code==404:atomic(STATE/'offer.json',None);return 'not_published'
   raise
  sig=download(url+'.sig',64);verify_signature(raw,sig)
- catalog=json.loads(raw);offer=catalog.get(installed()['platform'])
- if not offer:raise ValueError('No release for this system in catalog')
- available=validate_offer(offer)
+ catalog=json.loads(raw);offer=select_offer(catalog);available=offer is not None
  atomic(STATE/'catalog.json',{'raw':raw.decode(),'signature':sig.hex()})
  atomic(STATE/'offer.json',offer if available else None)
  return 'available' if available else 'up_to_date'
@@ -106,8 +116,8 @@ def verified_offer():
  catalog=read(STATE/'catalog.json')
  if not catalog:raise ValueError('Check for updates first')
  raw=catalog['raw'].encode();verify_signature(raw,bytes.fromhex(catalog['signature']))
- offer=json.loads(raw)[installed()['platform']]
- if not validate_offer(offer):raise ValueError('No newer compatible release')
+ offer=select_offer(json.loads(raw))
+ if offer is None:raise ValueError('No newer compatible release')
  return offer
 def inspect_package(data):
  if len(data)>MAX_PACKAGE:raise ValueError('Package too large')
@@ -181,8 +191,20 @@ def replace_file(target,data,mode):
  target.parent.mkdir(parents=True,exist_ok=True);tmp=target.with_name(target.name+'.update-new')
  with tmp.open('wb') as f:f.write(data);f.flush();os.fsync(f.fileno())
  os.chmod(tmp,mode);os.replace(tmp,target)
+def restart_changed_helix():
+ if ROOT!=Path('/') or installed()['platform']!='printer':return
+ tx=read(STATE/'transaction.json',{})
+ changed={f['path'] for f in tx.get('files',[])}
+ if 'usr/local/sbin/s1-helix' not in changed:return
+ helper=at('/usr/local/lib/kobranest-display/layout.py')
+ if tx.get('phase')=='checking' and helper.is_file():subprocess.run([sys.executable,str(helper)],check=True,timeout=15)
+ selection=at('/etc/s1-ui')
+ if selection.exists() and selection.read_text().strip()=='helix':
+  subprocess.run(['/usr/local/sbin/s1-ui-select','helix'],check=True,timeout=10)
+
 def restart_web():
  if ROOT!=Path('/'):return
+ restart_changed_helix()
  stopped=[]
  for p in Path('/proc').iterdir():
   if not p.name.isdigit() or int(p.name)==os.getpid():continue
@@ -203,6 +225,17 @@ def prune_backups(keep):
   if p.name in retained:continue
   if len(retained)<3:retained.add(p.name);continue
   if p.resolve().parent==base.resolve():shutil.rmtree(p)
+
+def helix_health_required():
+ tx=read(STATE/'transaction.json',{});selection=at('/etc/s1-ui')
+ return (installed()['platform']=='printer' and any(f['path']=='usr/local/sbin/s1-helix' for f in tx.get('files',[]))
+         and selection.exists() and selection.read_text().strip()=='helix')
+
+def helix_running():
+ try:
+  pid=int(at('/run/s1/helix.pid').read_text().strip())
+  return pid>1 and b'helix-screen' in at('/proc/'+str(pid)+'/cmdline').read_bytes()
+ except (OSError,ValueError):return False
 def health():
  if ROOT!=Path('/'):raise ValueError('Fixture health must be explicitly injected by tests')
  if installed()['platform']=='pi':
@@ -216,10 +249,11 @@ def health():
  for _ in range(30):
   try:
    with build_opener(ProxyHandler({})).open(url,timeout=2) as r:
-    if r.status==200 and isinstance(json.load(r).get('required'),bool):return
+    if r.status==200 and isinstance(json.load(r).get('required'),bool):
+     if not helix_health_required() or helix_running():return
   except (OSError,ValueError):pass
   time.sleep(1)
- raise ValueError('Updated WebUI did not become healthy')
+ raise ValueError('Updated WebUI or selected Helix interface did not become healthy')
 def restore(tx,check_changes=False):
  backup=STATE/'backups'/tx['id']
  for f in tx['files']:

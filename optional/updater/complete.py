@@ -2,16 +2,18 @@
 import hashlib,json,os,shlex,subprocess,sys,tarfile,time
 from pathlib import Path
 NUMBER=(Path(__file__).resolve().parent/'RELEASE_VERSION').read_text().strip()
+BRIDGE=(Path(__file__).resolve().parent/'BRIDGE_VERSION').read_text().strip()
+
+def bridge_path(here):return here/'packages'/('KobraNest-printer-update-'+BRIDGE+'.tar.gz')
 
 def package_path(here,kind):return here/'packages'/('KobraNest-'+kind+'-update-'+NUMBER+'.tar.gz')
 
 def validate_bundle(here):
- for kind in ('pi','printer'):
-  path=package_path(here,kind)
+ for kind,expected,path in [('pi',NUMBER,package_path(here,'pi')),('printer',NUMBER,package_path(here,'printer')),('printer',BRIDGE,bridge_path(here))]:
   if not path.is_file():raise ValueError('Use the COMPLETE release ZIP; missing '+str(path))
   with tarfile.open(path,'r:gz') as tar:
    raw=tar.extractfile('manifest.json').read();signature=tar.extractfile('manifest.sig').read();manifest=json.loads(raw)
-   if manifest.get('version')!=NUMBER or manifest.get('platform')!=kind:raise ValueError('Wrong bundled update version/platform')
+   if manifest.get('version')!=expected or manifest.get('platform')!=kind:raise ValueError('Wrong bundled update version/platform')
   import tempfile
   with tempfile.TemporaryDirectory() as tmp:
    data=Path(tmp)/'manifest';sig=Path(tmp)/'signature';data.write_bytes(raw);sig.write_bytes(signature)
@@ -49,6 +51,10 @@ else:
 def update_remote(here,remote,directory):
  info=json.loads(remote('cat /usr/share/kobranest-update/version.json'))
  if not needs_update(info,'printer'):print('Printer runtime already at '+NUMBER);return
+ if tuple(map(int,info['version'].split('.')))<tuple(map(int,BRIDGE.split('.'))):
+  dest=directory+'/printer-bridge.tar.gz';remote('cat > '+shlex.quote(dest),bridge_path(here).read_bytes())
+  print(remote('/usr/local/sbin/s1-update stage --package '+shlex.quote(dest)).decode())
+  print(remote('/usr/local/sbin/s1-update apply --confirmation YES').decode())
  dest=directory+'/printer-update.tar.gz'
  remote('cat > '+shlex.quote(dest),package_path(here,'printer').read_bytes())
  print(remote('/usr/local/sbin/s1-update stage --package '+shlex.quote(dest)).decode())

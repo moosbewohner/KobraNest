@@ -1,7 +1,9 @@
 #!/bin/sh
 set -eu
 PI_IP=$(/usr/bin/python3 -c "import json,ipaddress; from pathlib import Path; p=Path('/etc/s1-web.json'); p=p if p.exists() else Path('/etc/s1-settings.json'); print(ipaddress.IPv4Address(json.loads(p.read_text())['pi_ip']))")
-PI_IP=$(/usr/bin/python3 /usr/local/lib/kobranest-serial-link/serial_settings.py moonraker-host)
+if [ -f /usr/local/lib/kobranest-serial-link/serial_settings.py ]; then
+    PI_IP=$(/usr/bin/python3 /usr/local/lib/kobranest-serial-link/serial_settings.py moonraker-host)
+fi
 HP=
 cleanup() {
     if [ -n "$HP" ]; then
@@ -17,7 +19,7 @@ cleanup() {
 }
 trap cleanup EXIT
 trap 'exit 0' TERM INT
-mkdir -p /opt/helixscreen/test-home /root/.helixscreen /run/s1
+mkdir -p /run/s1
 # Wait for the local WLAN control socket before initializing Helix WiFi.
 if [ -x /usr/sbin/wpa_cli ] && [ -f /etc/wpa_supplicant/s1.conf ]; then
     count=0
@@ -41,8 +43,17 @@ fi
 /usr/local/sbin/s1-display-init
 : >/var/log/HelixScreen.log
 cd /opt/helixscreen
-HOME=/opt/helixscreen/test-home HELIX_CONFIG_DIR=/opt/helixscreen/config HELIX_DIAGNOSTIC_UPLOADS=0 HELIX_PWM_SOUND=0:0 HELIX_DISPLAY_BACKEND=fbdev \
-    ./bin/helix-screen --size 800x480 --rotate 180 --skip-wizard \
+if [ -f /usr/local/lib/kobranest-display/layout.py ]; then
+    if ! /usr/bin/python3 /usr/local/lib/kobranest-display/layout.py --retire-home; then
+        echo 'Warning: legacy layout cleanup failed; starting HelixScreen anyway' >&2
+    fi
+fi
+# Keep the upstream tree unchanged. Older deployments may still use the legacy binary.
+HELIX_BIN=./bin/helix-screen
+[ -x "$HELIX_BIN" ] || HELIX_BIN=./bin/helix-screen-fbdev
+[ -x "$HELIX_BIN" ] || { echo 'HelixScreen executable missing' >&2; exit 1; }
+HOME=/root HELIX_CONFIG_DIR=/opt/helixscreen/config HELIX_DIAGNOSTIC_UPLOADS=0 HELIX_PWM_SOUND=0:0 HELIX_DISPLAY_BACKEND=fbdev \
+    "$HELIX_BIN" --size 800x480 --rotate 180 --skip-wizard \
     --skip-splash --render-2d \
     --moonraker "ws://$PI_IP:7125" --log-dest console \
     >>/var/log/HelixScreen.log 2>&1 &

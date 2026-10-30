@@ -86,6 +86,6 @@ Run a writing action only after an appropriate diagnosis, with YES and confirmed
 
 ## Further documentation
 
-- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.6)
+- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.8)
 - [Deutsch](ANLEITUNG-DE.md) · [English](ASSISTANT-EN.md)
 - [Recovery](RECOVERY.md) · [SSH](SSH.md)

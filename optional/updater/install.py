@@ -3,8 +3,9 @@
 import argparse,ast,hashlib,json,os,shutil,time
 from pathlib import Path
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--root',required=True,type=Path);p.add_argument('--platform',choices=['printer','pi'],default='printer');p.add_argument('--baseline',default=(Path(__file__).resolve().parent/'RELEASE_VERSION').read_text().strip());p.add_argument('--patch-web',action='store_true');p.add_argument('--if-missing',action='store_true');a=p.parse_args()
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--root',required=True,type=Path);p.add_argument('--platform',choices=['printer','pi'],default='printer');p.add_argument('--baseline');p.add_argument('--patch-web',action='store_true');p.add_argument('--if-missing',action='store_true');a=p.parse_args()
  root=a.root.resolve();here=Path(__file__).resolve().parent
+ if a.baseline is None:a.baseline=(here/'RELEASE_VERSION').read_text().strip() if a.platform=='pi' else '0.0.0'
  if root==Path('/') and os.geteuid()!=0:raise ValueError('Root required')
  if a.platform=='printer' and not (root/'etc/s1-boot-ready').is_file():raise ValueError('KobraNest root required')
  version=root/'usr/share/kobranest-update/version.json'
@@ -44,9 +45,13 @@ def main():
  state=root/'var/lib/kobranest-updates';state.mkdir(parents=True,exist_ok=True);state.chmod(0o700)
  if not version.exists() or a.patch_web:
   files={}
-  for name in ('usr/local/sbin/s1-web','opt/kobrian-web/index.html','usr/local/sbin/s1-update','usr/local/lib/kobranest-update/updater.py'):
+  names=['usr/local/sbin/s1-web','opt/kobrian-web/index.html','usr/local/sbin/s1-update','usr/local/lib/kobranest-update/updater.py']
+  if a.platform=='printer' and a.baseline!='0.0.0':names+=['usr/local/sbin/s1-helix','usr/local/lib/kobranest-display/layout.py']
+  for name in names:
    path=root/name
    if path.is_file():files[name]=hashlib.sha256(path.read_bytes()).hexdigest()
-  version.write_text(json.dumps({'version':a.baseline,'platform':a.platform,'files':files})+'\n');version.chmod(0o600)
+  info={'version':a.baseline,'platform':a.platform,'files':files}
+  if a.platform=='printer' and a.baseline=='0.0.0':info.update(version_scope='updater-bootstrap',original_system_version='unknown')
+  version.write_text(json.dumps(info)+'\n');version.chmod(0o600)
  print('KobraNest update support installed; account, network, SSH keys and tunnels preserved.')
 if __name__=='__main__':main()

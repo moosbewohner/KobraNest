@@ -45,4 +45,4 @@ Bestehende Fremdlizenzen werden durch dieses Paket nicht ersetzt. Die Debian-Bin
 
 ## HelixScreen: offizielles Paket
 
-Die aktuelle Version nutzt das unveränderte offizielle pi32-Programm aus v1.1.0-beta.11, Commit 3f4f594092d419f26866995478ba7c54a12378e2. Wrapper, Original-ZIP-Hash und Quellarchiv sind in `payload/helix-official.json` dokumentiert. `source/helixscreen-build/package.py --output CACHE` erstellt den Wrapper reproduzierbar; ein Neubau auf dem Pi ist nicht erforderlich. Die kleine Kompatibilitäts-Verknüpfung ändert den Programmcode nicht.
+Die aktuelle Version nutzt das unveränderte offizielle pi32-Programm aus v1.1.0-beta.11, Commit 3f4f594092d419f26866995478ba7c54a12378e2. Wrapper, Original-ZIP-Hash und Quellarchiv sind in `payload/helix-official.json` dokumentiert. `source/helixscreen-build/package.py --output CACHE` erstellt den Wrapper reproduzierbar; ein Neubau auf dem Pi ist nicht erforderlich. Die native Verzeichnisstruktur und alle Originaldateien bleiben erhalten; es wird keine zusätzliche Binary-Verknüpfung erzeugt.

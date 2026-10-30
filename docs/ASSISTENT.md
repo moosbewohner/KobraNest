@@ -1,6 +1,6 @@
 Eine aktuelle zusammenhängende Anleitung für Windows und Linux steht in [ANLEITUNG-DE.md](ANLEITUNG-DE.md).
 
-> USB/ECM 0.1.6: Vor dem PC-Assistenten bei altem USB-Gadget im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Danach Pi neu starten, warten bis er erreichbar ist, dann Drucker neu starten. / Before the PC assistant, prepare ECM on older gadgets using that command, restart Pi, wait for SSH, then restart printer. [Pi-Anleitung / Pi guide](PI.md).
+> USB/ECM 0.1.8: Vor dem PC-Assistenten bei altem USB-Gadget im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Danach Pi neu starten, warten bis er erreichbar ist, dann Drucker neu starten. / Before the PC assistant, prepare ECM on older gadgets using that command, restart Pi, wait for SSH, then restart printer. [Pi-Anleitung / Pi guide](PI.md).
 
 [Bebilderte Anleitung / Illustrated guide](BEBILDERT-DE.md)
 

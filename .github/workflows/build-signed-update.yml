@@ -49,6 +49,7 @@ jobs:
           diff -w optional/updater/release.pub "$RUNNER_TEMP/release.pub"
           python3 optional/updater/build.py --source . --out dist-updates --key "$key" --version "$RELEASE_VERSION" --minimum-version "$MINIMUM_VERSION" --base-url "https://github.com/$GITHUB_REPOSITORY/releases/download/v$RELEASE_VERSION"
           python3 optional/updater/build_complete.py --source . --packages dist-updates --out dist-updates --key "$key"
+          python3 optional/updater/build_printer_bundle.py --source . --packages dist-updates --out dist-updates --key "$key"
       - name: Create release draft
         env:
           GH_TOKEN: ${{ github.token }}

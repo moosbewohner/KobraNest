@@ -1,0 +1,9 @@
+{
+  "version": "0.1.8",
+  "date": "2026-10-30",
+  "automated_tests": 51,
+  "browser_checks": "DE/EN, desktop/mobile, controls, busy state, no overflow or page errors",
+  "windows_executable": "freshly built and localhost API smoke-tested",
+  "runtime_privacy_audit": "no device SSH material, locked generic root, generic Pi placeholder",
+  "hardware_scope": "Native layout and signed original 0.1.6 -> 0.1.7 -> 0.1.8 chain tested locally, with rollback and settings/image preservation. No live device updated or new beta.14 hardware certification."
+}

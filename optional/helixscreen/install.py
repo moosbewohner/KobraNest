@@ -11,7 +11,7 @@ import signal
 import subprocess
 import tarfile
 
-RELEASE_SHA = '361269dce1faa43e4acb5f06b1365490667b317d40f9a52e53e03586ecca29a3'
+RELEASE_SHA = '10b99850874f2324573151497974b1547912042aeca6c763c9af6d12df41d094'
 SOURCE = Path(__file__).resolve().parent
 
 
@@ -111,7 +111,18 @@ def install_acepro(root):
 
 
 
-LEGACY_RELEASE_SHAS = {'c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa819235b66','6cb694d4b5935e027de5fa08598ea42445087b9dc13e4ad799064243e6556f32'}
+LEGACY_RELEASE_SHAS = {'361269dce1faa43e4acb5f06b1365490667b317d40f9a52e53e03586ecca29a3','c6655f4fca7b004d26595a808db3da89e02207dc0c2aa6a87d384aa819235b66','6cb694d4b5935e027de5fa08598ea42445087b9dc13e4ad799064243e6556f32'}
+
+
+def keep_upstream_layout(root, destination):
+    """Move only our recognized old bookkeeping outside the upstream directory."""
+    import importlib.util
+    path = SOURCE/'layout.py'
+    spec = importlib.util.spec_from_file_location('kobranest_helix_layout', path)
+    helper = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(helper)
+    helper.migrate(root)
+
 
 
 def validate_runtime(root, destination):
@@ -146,6 +157,12 @@ def install_release(root, archive):
     destination = root/'opt/helixscreen'
     marker = destination/'.kobrian-release'
     if destination.exists():
+        # An upstream self-update owns this tree. Never downgrade it to our
+        # bundled baseline just because its old KobraNest marker disappeared.
+        if (destination/'bin/helix-screen').is_file():
+            validate_runtime(root, destination)
+            keep_upstream_layout(root, destination)
+            return destination
         assert marker.is_file(), 'Unrecognized HelixScreen installation; not overwritten'
         version = marker.read_text().strip()
         assert version in LEGACY_RELEASE_SHAS | {RELEASE_SHA}, 'Unrecognized HelixScreen release; not overwritten'
@@ -176,7 +193,6 @@ def install_release(root, archive):
     if (destination/'config/custom_images').is_dir():
         shutil.copytree(destination/'config/custom_images', candidate/'config/custom_images', dirs_exist_ok=True, symlinks=True)
     validate_runtime(root, candidate)
-    put(candidate/'.kobrian-release', (RELEASE_SHA+'\n').encode(), 0o644)
     backup = None
     if destination.exists():
         backup = root/'var/backups/kobrian-display'/('helixscreen-'+str(time.time_ns()))
@@ -189,6 +205,8 @@ def install_release(root, archive):
             os.replace(backup, destination)
         raise
     staging.rmdir()
+    put(root/'var/lib/kobranest-display/helixscreen.json',
+        (json.dumps({'layout':'upstream','upstream_managed':True,'initial_archive_sha256':RELEASE_SHA})+'\n').encode(),0o644)
     print('HelixScreen release installed; previous tree:', backup or 'fresh install')
     return destination
 
@@ -274,6 +292,7 @@ def main():
     backup.mkdir(parents=True, exist_ok=True)
     if not (backup/'s1-service').exists():
         shutil.copy2(service, backup/'s1-service')
+    put(root/'usr/local/lib/kobranest-display/layout.py', (SOURCE/'layout.py').read_bytes(), 0o644)
     for name in ('s1-ui','s1-ui-select','s1-helix'):
         put(root/'usr/local/sbin'/name, (SOURCE/name).read_bytes())
     put(service, text.replace(previous, replacement).encode())

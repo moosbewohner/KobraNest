@@ -38,6 +38,21 @@ class UpdateTests(unittest.TestCase):
  def test_missing_version_does_not_invent_platform_or_release(self):
   self.m.VERSION.unlink()
   with self.assertRaisesRegex(ValueError,'Version metadata missing'):self.m.installed()
+ def test_catalog_offers_preparation_then_native_update(self):
+  m=self.m
+  offer=lambda number,minimum:dict(format=1,platform='printer',version=number,minimum_version=minimum,sha256='0'*64,size=1,url='https://example.org/update.tar.gz')
+  catalog={'printer':offer('0.1.7','0.0.0'),'printer_updates':[offer('0.1.8','0.1.7')]}
+  for current,expected in [('0.1.6','0.1.7'),('0.1.7','0.1.8'),('0.1.8',None)]:
+   m.atomic(m.VERSION,{'version':current,'platform':'printer','files':{}})
+   selected=m.select_offer(catalog);self.assertEqual(selected['version'] if selected else None,expected)
+ def test_helix_probe_tracks_only_selected_changed_interface(self):
+  m=self.m;p=self.root/'etc/s1-ui';p.write_text('helix')
+  m.atomic(m.STATE/'transaction.json',{'files':[{'path':'usr/local/sbin/s1-helix'}]})
+  self.assertTrue(m.helix_health_required());self.assertFalse(m.helix_running())
+  pid=self.root/'run/s1/helix.pid';pid.parent.mkdir(parents=True);pid.write_text('4321')
+  cmd=self.root/'proc/4321/cmdline';cmd.parent.mkdir(parents=True);cmd.write_bytes(b'./bin/helix-screen\0--size\0800x480')
+  self.assertTrue(m.helix_running());cmd.write_bytes(b'unrelated-process');self.assertFalse(m.helix_running())
+  p.write_text('klipperscreen');self.assertFalse(m.helix_health_required())
  def test_bad_health_rolls_back_all_files(self):
   self.stage()
   def fail():raise ValueError('health failed')

@@ -7,7 +7,7 @@ class CompleteTests(unittest.TestCase):
  def test_versions_and_platforms(self):
   self.assertTrue(m.needs_update({'platform':'printer','version':'0.1.4'},'printer'))
   self.assertFalse(m.needs_update({'platform':'pi','version':m.NUMBER},'pi'))
-  for info,kind in [({'platform':'printer','version':'0.1.3'},'pi'),({'platform':'pi','version':'0.1.7'},'pi')]:
+  for info,kind in [({'platform':'printer','version':'0.1.3'},'pi'),({'platform':'pi','version':'9999.0.0'},'pi')]:
    with self.assertRaises(ValueError):m.needs_update(info,kind)
  def test_wrong_bundle_rejected_before_signature_or_device_changes(self):
   with tempfile.TemporaryDirectory() as tmp:
@@ -24,9 +24,10 @@ class CompleteTests(unittest.TestCase):
    calls.append((command,data))
    return json.dumps({'platform':'printer','version':'0.1.4'}).encode() if command.startswith('cat /usr/share') else b'OK'
   with tempfile.TemporaryDirectory() as tmp:
-   here=Path(tmp);p=m.package_path(here,'printer');p.parent.mkdir();p.write_bytes(b'PACKAGE')
+   here=Path(tmp);p=m.package_path(here,'printer');p.parent.mkdir();p.write_bytes(b'PACKAGE');m.bridge_path(here).write_bytes(b'BRIDGE')
    m.update_remote(here,remote,'/tmp/known')
-  self.assertEqual(calls[1],('cat > /tmp/known/printer-update.tar.gz',b'PACKAGE'))
+  self.assertEqual(calls[1],('cat > /tmp/known/printer-bridge.tar.gz',b'BRIDGE'))
+  self.assertEqual(calls[4],('cat > /tmp/known/printer-update.tar.gz',b'PACKAGE'))
   self.assertIn('stage --package',calls[2][0]);self.assertIn('apply --confirmation YES',calls[3][0])
   calls.clear()
   def done(command,data=None):calls.append(command);return json.dumps({'platform':'printer','version':m.NUMBER}).encode()

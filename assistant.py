@@ -376,7 +376,7 @@ class Assistant:
                 getattr(installer, action)(args, settings, work)
             if action == 'stage':
                 installer.setup_pi_updater(args, settings, work)
-                self.row('Pi-Updater', 'ok', 'Pi-Updatewerkzeuge eingerichtet; vorhandene Version bleibt erhalten.')
+                self.row('Pi-Updater', 'ok', 'Pi-Updatewerkzeuge bereit; erforderliche signierte Aktualisierung abgeschlossen.')
                 self.stage_addons(connect, settings, work)
                 installer.setup_serial_link(args, settings, work)
                 if ssh_key:
@@ -448,7 +448,8 @@ class Assistant:
         installer.run(c, 'mkdir -p ' + root + '/opt/updater')
         for name in ('RELEASE_VERSION', 'install.py', 'updater.py', 's1-update', 's1-time-sync', 'release.pub'):
             installer.put(c, root + '/opt/updater/' + name, PACKAGE / 'optional/updater' / name)
-        installer.run(c, 'chroot ' + root + ' /usr/bin/python3 /opt/kobrian-web-installer/install.py --root / --pi-ip ' + settings['pi_ip'])
+        release=(PACKAGE/'optional/updater/RELEASE_VERSION').read_text().strip()
+        installer.run(c, 'chroot ' + root + ' /usr/bin/python3 /opt/kobrian-web-installer/install.py --root / --pi-ip ' + settings['pi_ip']+' --release-baseline '+installer.shlex.quote(release))
         appdir = '/useremain/home/rinkhals/apps/kobrian-start'
         existing = installer.run(c, 'if test -e ' + appdir + '; then echo existing; else echo missing; fi').strip()
         if existing == 'existing':

@@ -330,7 +330,7 @@ def stage_display(c,s):
     put(c,ROOT+'/usr/local/share/s1-splash/kobrian.bgrx',PACKAGE/'payload/kobranest.bgrx')
     directory=ROOT+'/opt/kobrian-display-installer'
     run(c,'mkdir -p '+directory)
-    for name in ('install.py','s1-ui','s1-ui-select','s1-helix'):
+    for name in ('install.py','layout.py','s1-ui','s1-ui-select','s1-helix'):
         put(c,directory+'/'+name,PACKAGE/'optional/helixscreen'/name,0o755)
     run(c,'mkdir -p '+directory+'/custom-images')
     put(c,directory+'/custom-images/rinkhals_s1.png',PACKAGE/'optional/helixscreen/custom-images/rinkhals_s1.png',0o644)

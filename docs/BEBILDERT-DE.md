@@ -86,6 +86,6 @@ Eine Schreibaktion erst nach passender Diagnose und mit YES sowie bestätigtem L
 
 ## Weiterführende Anleitungen
 
-- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.6)
+- [GitHub / Download](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.8)
 - [Deutsch](ANLEITUNG-DE.md) · [English](ASSISTANT-EN.md)
 - [Recovery](RECOVERY.md) · [SSH](SSH.md)
