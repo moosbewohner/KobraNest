@@ -1,0 +1,11 @@
+{
+  "version": "0.1.9",
+  "date": "2026-11-25",
+  "initial_helix": "official v1.1.0 Stable, pi32",
+  "upstream_files_preserved": 1154,
+  "update_channel": 0,
+  "automated_tests": 51,
+  "existing_installation": "offline fixtures preserve canonical Helix program, settings and custom images",
+  "windows_executable": "unchanged assistant code, existing EXE checked with refreshed 0.1.9 external UI and localhost API",
+  "hardware_scope": "No fresh device installation or upgrade performed for this package"
+}

@@ -2,7 +2,7 @@
 """Wrap the verified official HelixScreen archive; never copies a running printer."""
 import argparse,hashlib,io,json,tarfile,urllib.request,zipfile
 from pathlib import Path
-METADATA={'repository': 'prestonbrown/helixscreen', 'version': 'v1.1.0-beta.11', 'commit': '3f4f594092d419f26866995478ba7c54a12378e2', 'official_asset': 'https://github.com/prestonbrown/helixscreen/releases/download/v1.1.0-beta.11/helixscreen-pi32.zip', 'official_asset_sha256': 'f318adc869f20d7adb9a98ab3cb9decca16f3df5ee7c2338ea3531ea5c38a45d', 'binary_sha256': 'de14865176144462f17625e72f75a59294525e33a0b4a2c0b89060a0712c898c', 'archive_sha256': '10b99850874f2324573151497974b1547912042aeca6c763c9af6d12df41d094', 'source_url': 'https://codeload.github.com/prestonbrown/helixscreen/tar.gz/3f4f594092d419f26866995478ba7c54a12378e2'}
+METADATA={'repository': 'prestonbrown/helixscreen', 'version': 'v1.1.0', 'commit': 'e82a1bb844794153f8c9d3f5f590a3f930463cb4', 'official_asset': 'https://github.com/prestonbrown/helixscreen/releases/download/v1.1.0/helixscreen-pi32.zip', 'official_asset_sha256': '831b9e4c80e9b79f8c8b454cb7b46a381192c8e9d7ac53010ac14ba6054a2e0b', 'binary_sha256': '68f923405013c09f77756848f76579a5a3fd2fd2f150dfb507073acd825f0041', 'source_url': 'https://codeload.github.com/prestonbrown/helixscreen/tar.gz/e82a1bb844794153f8c9d3f5f590a3f930463cb4', 'archive_sha256': '9edf3516b5b2e9b58d0490bf50c4e4008242ec018221a17736b8ba8a4934969a'}
 def main():
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
  raw=a.output/'helixscreen-pi32.zip'

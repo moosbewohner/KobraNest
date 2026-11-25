@@ -1,5 +1,8 @@
 Eine aktuelle zusammenhängende Anleitung für Windows und Linux steht in [ANLEITUNG-DE.md](ANLEITUNG-DE.md).
 
+Das Erstinstallationspaket 0.1.9 enthält die offizielle HelixScreen-Version 1.1.0 Stable mit eigenem Updater im Stable-Kanal. Vorhandene Helix-Programmdateien, Einstellungen und eigene Bilder bleiben bei einer Reparatur erhalten.
+
+
 > USB/ECM 0.1.8: Vor dem PC-Assistenten bei altem USB-Gadget im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Danach Pi neu starten, warten bis er erreichbar ist, dann Drucker neu starten. / Before the PC assistant, prepare ECM on older gadgets using that command, restart Pi, wait for SSH, then restart printer. [Pi-Anleitung / Pi guide](PI.md).
 
 [Bebilderte Anleitung / Illustrated guide](BEBILDERT-DE.md)

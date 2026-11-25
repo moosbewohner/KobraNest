@@ -12,9 +12,9 @@ Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional Kli
 
 ## Download
 
-**[Vollständiges Installationspaket mit Windows-EXE herunterladen / Download complete installer](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.8/KobraNest-S1-v0.1.8.zip)**
+**[Vollständiges Installationspaket mit Windows-EXE herunterladen / Download complete installer](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.9/KobraNest-S1-v0.1.9.zip)**
 
-[Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.8) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.8/KobraNest-S1-v0.1.8.zip.sha256)
+[Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.9) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.9/KobraNest-S1-v0.1.9.zip.sha256)
 
 ZIP vollständig entpacken, dann **Start-KobraNest.cmd** starten. `_internal` muss daneben bleiben. / Extract the complete ZIP, then run **Start-KobraNest.cmd**. Keep `_internal` beside it.
 
@@ -48,9 +48,9 @@ KobraNest does not automatically install these projects or Rinkhals, and does no
 
 ## Installation
 
-Das vollständige Installationspaket **KobraNest-S1-v0.1.8.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.
+Das vollständige Installationspaket **KobraNest-S1-v0.1.9.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.
 
-Use the complete **KobraNest-S1-v0.1.8.zip** installation package and extract it first. GitHub's “Source code” ZIP is not the complete installer. Runtime archives and the Windows runtime are distributed separately as release assets.
+Use the complete **KobraNest-S1-v0.1.9.zip** installation package and extract it first. GitHub's “Source code” ZIP is not the complete installer. Runtime archives and the Windows runtime are distributed separately as release assets.
 
 - [Deutsche Installationsanleitung](docs/ANLEITUNG-DE.md)
 - [Windows / Linux assistant — English](docs/ASSISTANT-EN.md)
@@ -59,6 +59,10 @@ Use the complete **KobraNest-S1-v0.1.8.zip** installation package and extract it
 - [Kompatibilität / Compatibility](docs/KOMPATIBILITAET.md)
 - [Wiederherstellung / Recovery](docs/RECOVERY.md)
 - [Build und Fremdsoftware / Build and third-party components](docs/BUILD.md)
+
+Das Erstinstallationspaket 0.1.9 enthält HelixScreen **1.1.0 Stable** aus dem offiziellen Repository. Helix verwendet seinen eigenen Updater mit Stable-Kanal. Bestehende Helix-Installationen behalten bei einer Reparatur ihre Programmversion, Einstellungen und eigenen Bilder.
+
+The 0.1.9 first-installation bundle includes official HelixScreen **1.1.0 Stable**. Helix uses its own updater with the Stable channel. Repair preserves an existing Helix installation, its settings and custom images.
 
 ## Funktionen / Features
 
@@ -94,6 +98,9 @@ Eigener KobraNest-Code: **GPL-3.0-only**, siehe [LICENSE](LICENSE). Fremdsoftwar
 Original KobraNest code: **GPL-3.0-only**, see [LICENSE](LICENSE). Third-party components retain their own licenses. Trademarks belong to their respective owners; no vendor endorsement is claimed.
 
 ## Updates / Aktualisierungen
+
+**0.1.9:** In der Drucker-WebUI „Updates prüfen“ wählen. Das Wartungsupdate korrigiert die MAC-Anzeige. / Choose “Check for updates” in the printer WebUI. This maintenance update fixes MAC address display.
+
 
 **Helix-Korrektur für bestehende Installationen:** In der Drucker-WebUI 0.1.7 installieren, erneut prüfen, dann 0.1.8 installieren. Oder [Drucker-Update-ZIP](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.8/KobraNest-Drucker-Update-0.1.8.zip) auf dem Drucker entpacken und `python3 update_printer.py --confirmation YES` starten. Dafür keine Pi-Einrichtung erneut ausführen. / Existing users: install preparation 0.1.7, check again, then 0.1.8; alternatively use the printer-only ZIP on the printer. No Pi setup is required.
 

@@ -2,6 +2,8 @@
 
 ## 0.1.9 — 2026-11-25
 
+- Refresh the complete first-installation bundle to official HelixScreen 1.1.0 Stable with the upstream Stable update channel. Preserve existing Helix installations during repair.
+
 - Show network MAC addresses when IPv4-only `ip` JSON omits the link-layer address, using the interface address from sysfs as fallback.
 - Printer WebUI maintenance update for installations running 0.1.8. The signed catalog retains the preparation steps for older installations.
 

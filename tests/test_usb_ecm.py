@@ -56,8 +56,8 @@ class SerialReleaseTests(unittest.TestCase):
   m=load(BASE/'optional/helixscreen/install.py','helix_install_test')
   with tarfile.open(BASE/'payload/helixscreen-kobranest-armhf.tar.gz') as tar:
    template=json.load(tar.extractfile('helixscreen/config/settings.json.template'))
-   binary=tar.extractfile('helixscreen/bin/helix-screen').read();self.assertEqual(hashlib.sha256(binary).hexdigest(),'de14865176144462f17625e72f75a59294525e33a0b4a2c0b89060a0712c898c')
-  config=m.configuration(template,'192.168.1.151','en');p=config['printers']['default'];self.assertTrue(p['wizard_completed']);self.assertFalse(config['disable_sound']);self.assertFalse(config['sounds_enabled']);self.assertEqual(config['sound']['pwm_channel'],'0:0');self.assertEqual(p['leds']['strip'],'')
+   binary=tar.extractfile('helixscreen/bin/helix-screen').read();self.assertEqual(hashlib.sha256(binary).hexdigest(),'68f923405013c09f77756848f76579a5a3fd2fd2f150dfb507073acd825f0041')
+  config=m.configuration(template,'192.168.1.151','en');self.assertEqual(config['update']['channel'],0);p=config['printers']['default'];self.assertTrue(p['wizard_completed']);self.assertFalse(config['disable_sound']);self.assertFalse(config['sounds_enabled']);self.assertEqual(config['sound']['pwm_channel'],'0:0');self.assertEqual(p['leds']['strip'],'')
   p['wizard_completed']=False;p['leds']['strip']='output_pin caselight';p['leds']['selected_strips']=['output_pin caselight'];p['hardware']['last_snapshot']={'leds':[],'fans':['controller_fan controller_fan']};config['disable_sound']=True;file=self.root/'settings.json';file.write_text(json.dumps(config))
   m.migrate_kobranest_settings(file);saved=json.loads(file.read_text());self.assertTrue(saved['printers']['default']['wizard_completed']);self.assertEqual(saved['printers']['default']['leds']['strip'],'');self.assertFalse(saved['sounds_enabled'])
   self.assertEqual(saved['printers']['default']['panel_widgets'],p['panel_widgets'])
