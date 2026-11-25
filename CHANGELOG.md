@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.9 — 2026-11-25
+
+- Show network MAC addresses when IPv4-only `ip` JSON omits the link-layer address, using the interface address from sysfs as fallback.
+- Printer WebUI maintenance update for installations running 0.1.8. The signed catalog retains the preparation steps for older installations.
+
 ## 0.1.8 — 2026-10-30: native HelixScreen layout compatibility
 
 - Merge PR #2: canonical `bin/helix-screen` is recognized by WebUI and runtime validation; older fbdev deployments remain supported.

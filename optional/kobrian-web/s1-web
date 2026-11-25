@@ -227,7 +227,7 @@ def network_interfaces():
                 except OSError:
                     pass  # Interface exists but has no IPv4 address.
                 entries.append(entry)
-    return [{'name': item['ifname'], 'mac': item.get('address', ''),
+    return [{'name': item['ifname'], 'mac': item.get('address') or read('/sys/class/net/' + item['ifname'] + '/address'),
              'carrier': read('/sys/class/net/' + item['ifname'] + '/carrier') == '1',
              'addresses': [address['local'] for address in item.get('addr_info', [])]}
             for item in entries if item['ifname'] != 'lo']
