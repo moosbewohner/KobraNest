@@ -505,7 +505,7 @@ def activate(args,s,work):
     c=connect(s['printer_ip'],'root',work/'stock_known_hosts','rockchip')
     try:
         live_partitions=confirm_live(c,m)
-        run(c,'test -f '+ROOT+'/etc/s1-network.conf && test -f '+ROOT+'/etc/shadow && test ! -e '+BASE+'/boot-attempt && test -x '+ROOT+'/usr/local/sbin/s1-ui-select && test -x '+ROOT+'/opt/helixscreen/bin/helix-screen-fbdev && test -f '+ROOT+'/opt/KlipperScreen/screen.py')
+        run(c,'test -f '+ROOT+'/etc/s1-network.conf && test -f '+ROOT+'/etc/shadow && test ! -e '+BASE+'/boot-attempt && test -x '+ROOT+'/usr/local/sbin/s1-ui-select && ( test -x '+ROOT+'/opt/helixscreen/bin/helix-screen || test -x '+ROOT+'/opt/helixscreen/bin/helix-screen-fbdev ) && test -f '+ROOT+'/opt/KlipperScreen/screen.py')
         for name in ('boot_b.img','bootstrap.img'):
             require(run(c,'sha256sum '+BASE+'/'+name).split()[0]==m['files'][name],'Staged image changed')
         # Also keep fresh backups on the device before any flash write.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.10 — 2026-11-26
+
+- Fix issue #3: activation accepts executable canonical HelixScreen or the older fbdev binary. Rebuild the Windows assistant.
+- Mitigate issue #4: new camera configurations default to 640×480 at 5 FPS. Preserve existing camera choices and show a LAN load warning in the assistant and WebUI. Existing users can select these values or disable the camera in the WebUI.
+- The camera load mitigation has not been validated by an on-device print stress test.
+
 ## 0.1.9 — 2026-11-25
 
 - Refresh the complete first-installation bundle to official HelixScreen 1.1.0 Stable with the upstream Stable update channel. Preserve existing Helix installations during repair.

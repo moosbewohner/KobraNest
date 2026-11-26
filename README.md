@@ -12,9 +12,9 @@ Local Debian 13 for the **Anycubic Kobra S1**, with HelixScreen, an optional Kli
 
 ## Download
 
-**[Vollständiges Installationspaket mit Windows-EXE herunterladen / Download complete installer](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.9/KobraNest-S1-v0.1.9.zip)**
+**[Vollständiges Installationspaket mit Windows-EXE herunterladen / Download complete installer](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.10/KobraNest-S1-v0.1.10.zip)**
 
-[Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.9) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.9/KobraNest-S1-v0.1.9.zip.sha256)
+[Release-Hinweise / Release notes](https://github.com/moosbewohner/KobraNest/releases/tag/v0.1.10) · [SHA-256](https://github.com/moosbewohner/KobraNest/releases/download/v0.1.10/KobraNest-S1-v0.1.10.zip.sha256)
 
 ZIP vollständig entpacken, dann **Start-KobraNest.cmd** starten. `_internal` muss daneben bleiben. / Extract the complete ZIP, then run **Start-KobraNest.cmd**. Keep `_internal` beside it.
 
@@ -48,9 +48,9 @@ KobraNest does not automatically install these projects or Rinkhals, and does no
 
 ## Installation
 
-Das vollständige Installationspaket **KobraNest-S1-v0.1.9.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.
+Das vollständige Installationspaket **KobraNest-S1-v0.1.10.zip** verwenden und vollständig entpacken. GitHub „Source code“ ZIP ist kein vollständiges Installationspaket. Die großen Laufzeitarchive und die Windows-Laufzeit gehören zu den separaten Release-Dateien.
 
-Use the complete **KobraNest-S1-v0.1.9.zip** installation package and extract it first. GitHub's “Source code” ZIP is not the complete installer. Runtime archives and the Windows runtime are distributed separately as release assets.
+Use the complete **KobraNest-S1-v0.1.10.zip** installation package and extract it first. GitHub's “Source code” ZIP is not the complete installer. Runtime archives and the Windows runtime are distributed separately as release assets.
 
 - [Deutsche Installationsanleitung](docs/ANLEITUNG-DE.md)
 - [Windows / Linux assistant — English](docs/ASSISTANT-EN.md)
@@ -60,9 +60,9 @@ Use the complete **KobraNest-S1-v0.1.9.zip** installation package and extract it
 - [Wiederherstellung / Recovery](docs/RECOVERY.md)
 - [Build und Fremdsoftware / Build and third-party components](docs/BUILD.md)
 
-Das Erstinstallationspaket 0.1.9 enthält HelixScreen **1.1.0 Stable** aus dem offiziellen Repository. Helix verwendet seinen eigenen Updater mit Stable-Kanal. Bestehende Helix-Installationen behalten bei einer Reparatur ihre Programmversion, Einstellungen und eigenen Bilder.
+Das Erstinstallationspaket 0.1.10 enthält HelixScreen **1.1.0 Stable** aus dem offiziellen Repository. Helix verwendet seinen eigenen Updater mit Stable-Kanal. Bestehende Helix-Installationen behalten bei einer Reparatur ihre Programmversion, Einstellungen und eigenen Bilder.
 
-The 0.1.9 first-installation bundle includes official HelixScreen **1.1.0 Stable**. Helix uses its own updater with the Stable channel. Repair preserves an existing Helix installation, its settings and custom images.
+The 0.1.10 first-installation bundle includes official HelixScreen **1.1.0 Stable**. Helix uses its own updater with the Stable channel. Repair preserves an existing Helix installation, its settings and custom images.
 
 ## Funktionen / Features
 
@@ -74,6 +74,10 @@ The 0.1.9 first-installation bundle includes official HelixScreen **1.1.0 Stable
 - Optionaler öffentlicher SSH-Schlüssel, eigenes root-Passwort und bestätigte Übertragung der Lichtkonfiguration zum Pi.
 - Slot A bleibt erhalten; Anycubic-Rückkehr und Rinkhals-Starter vorhanden.
 - Realtek RTL8153B: Firmware und geprüfte Wiederherstellung der aus dem Adapter gelesenen MAC, ohne fest vorgegebene Adresse.
+
+Bei LAN-Tunneling wird die Druckerkamera mit 640 × 480 und 5 FPS eingerichtet. Dauerhafte Kamera-Zuschauer können die MCU-Verbindung belasten. Bei Abbrüchen die Kamera in der WebUI deaktivieren oder direkt am Pi betreiben. Bestehende Kamera-Einstellungen bleiben erhalten.
+
+New camera configurations use 640 × 480 at 5 FPS. Continuous camera viewing can affect LAN MCU tunneling. Disable the camera in the WebUI or connect it directly to the Pi if problems occur. Existing camera settings are preserved.
 
 ## Teststand / Test status
 
