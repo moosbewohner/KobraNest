@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "date": "2026-11-26",
+  "initial_helix": "official v1.1.0 Stable, pi32",
+  "upstream_files_preserved": 1154,
+  "update_channel": 0,
+  "automated_tests": 53,
+  "existing_installation": "offline fixtures preserve canonical Helix program, settings and custom images",
+  "windows_executable": "activation-fixed 0.1.10 EXE reused with unchanged Python code; refreshed 0.2.0 external UI and localhost API smoke checked",
+  "browser_checks": "DE/EN at 1200px and 390px; five views, direct links, Back/Forward, reload, form edits retained, unique IDs, no overflow or JS errors",
+  "hardware_scope": "No fresh device installation or upgrade performed for this package"
+}

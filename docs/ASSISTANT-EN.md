@@ -1,9 +1,11 @@
 # KobraNest setup assistant
 
-The 0.1.10 bundle ships official HelixScreen 1.1.0 Stable and retains its own Stable-channel updater. Existing Helix program files, settings and custom images are preserved during repair.
+The 0.2.0 bundle ships official HelixScreen 1.1.0 Stable and retains its own Stable-channel updater. Existing Helix program files, settings and custom images are preserved during repair.
 
 
 > USB/ECM 0.1.8: Vor dem PC-Assistenten bei altem USB-Gadget im Komplettpaket auf dem Pi `bash setup.sh --prepare-ecm` ausführen. Danach Pi neu starten, warten bis er erreichbar ist, dann Drucker neu starten. / Before the PC assistant, prepare ECM on older gadgets using that command, restart Pi, wait for SSH, then restart printer. [Pi-Anleitung / Pi guide](PI.md).
+
+WebUI 0.2.0 uses top navigation for Overview, Connections, Display & camera, Maintenance, and Updates. USB forwards are shown under Connections when USB mode is active.
 
 [Bebilderte Anleitung / Illustrated guide](ILLUSTRATED-EN.md)
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-11-26
+
+- Organize the WebUI into Overview, Connections, Display & camera, Maintenance and Updates with top navigation, direct links and browser Back/Forward support.
+- Preserve form values while navigating. USB forwards remain conditional on USB mode. German and English navigation and responsive mobile layout.
+
 ## 0.1.10 — 2026-11-26
 
 - Fix issue #3: activation accepts executable canonical HelixScreen or the older fbdev binary. Rebuild the Windows assistant.
